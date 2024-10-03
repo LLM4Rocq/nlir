@@ -325,8 +325,8 @@ class TemplateEnv(Env):
         proof = self.parse(message)
         sub_template, sub_holes = self.templatize(h.state, proof)
         if sub_template.tactics == ["{", "admit.", "}"]:  # Remove nested admit.
-            h.proof = ["admit."]
-            self.holes.extend(sub_holes)
+            h.proof = []
+            self.holes.append(h)
         else:
             h.proof = sub_template.proof
             self.holes.extend(sub_holes)
