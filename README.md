@@ -28,10 +28,10 @@ The conversation logs should be stored in `./outputs`
 
 ## Config
 
+Main config (in `conf/config.yaml`)
+
 ```bash
 workspace: coq workspace root dir
-file: file containing theorem definition
-thm: theorem name
 
 petanque:
   address: pet-server address (default 127.0.0.1)
@@ -49,4 +49,23 @@ search:
   kind: one of [tactics, template]
   mode: one of [naive, beam]
   max_steps: max iterations for the naive search
+
+defaults:
+  - benchmark: config file for the benchmark (see below)
 ```
+
+Benchmark (in `conf/benchmark/`, see e.g., `example.yaml`)
+
+```bash
+- file: foo.v
+  theorems:
+    - foo
+    - foofoo
+- file: bar.v
+  theorems:
+    - bar
+```
+
+## Replayer
+
+see `nlir/replay.py` for an example.
