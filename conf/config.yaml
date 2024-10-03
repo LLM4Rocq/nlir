@@ -1,6 +1,4 @@
 workspace: "examples"
-file: "foo.v"
-thm: "foo"
 
 petanque:
   address: 127.0.0.1
@@ -9,7 +7,6 @@ petanque:
   run_opts: null
 
 agent:
-  kind: gpt
   model_id: gpt-4o
   temperature: 1.0
   source_file: none
@@ -20,6 +17,8 @@ search:
   max_steps: 15
 
 defaults:
+  - _self_
+  - benchmark: example
   - override hydra/job_logging: none
   - override hydra/hydra_logging: none
 
