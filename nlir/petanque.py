@@ -195,10 +195,11 @@ class Template:
 
     def __repr__(self) -> str:
         if not self.proof:
-            return "admit."
-        return self.proof.__repr__()
+            return '"admit."'
+        return "[" + ", ".join(step.__repr__() for step in self.proof) + "]"
 
-    def flatten(self) -> list[str]:
+    @property
+    def tactics(self) -> list[str]:
         res = []
         for step in self.proof:
             match step:
@@ -206,7 +207,7 @@ class Template:
                     res += [step]
                 case Template():
                     if step.proof:
-                        res += step.flatten()
+                        res += step.tactics
                     else:
                         res += ["admit."]
         return res
@@ -244,12 +245,19 @@ class TemplateEnv(Env):
             state: State, tactics: list[str], drop: bool
         ) -> Tuple[Template, list[Template]]:
             if not tactics:
-                return template, holes
+                if not self.pet.goals(state):
+                    return template, holes
+                else:
+                    # This should never happen
+                    raise PetanqueError(-1, "Incomplete template")
 
             tac = tactics[0]
+            if tac in ["Abort.", "Admitted."]:
+                # Replace by admit and continue to fix the end of the template
+                tac = "admit."
             try:
                 next_state = self.pet.run_tac(state, tac)
-                if tac in ["admit.", "Abort.", "Admitted."]:
+                if tac in ["admit.", "give_up."]:
                     h = Template(state)
                     template.proof.append(h)
                     holes.append(h)
@@ -316,9 +324,13 @@ class TemplateEnv(Env):
         h = self.holes.popleft()
         proof = self.parse(message)
         sub_template, sub_holes = self.templatize(h.state, proof)
-        h.proof = sub_template.proof
-        self.holes.extend(sub_holes)
-        self.proof = self.template.flatten()
+        if sub_template.tactics == ["{", "admit.", "}"]:  # Remove nested admit.
+            h.proof = ["admit."]
+            self.holes.extend(sub_holes)
+        else:
+            h.proof = sub_template.proof
+            self.holes.extend(sub_holes)
+        self.proof = self.template.tactics
 
     @property
     def prompt(self) -> Iterable[ChatCompletionMessageParam]:
