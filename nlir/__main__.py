@@ -9,7 +9,7 @@ from nlir.search import naive_search
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
-def run(cfg: DictConfig) -> None:
+def run(cfg: DictConfig):
 
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
     pet.connect()
@@ -39,8 +39,8 @@ def run(cfg: DictConfig) -> None:
         print(f"Inspecting {thms.file}")
         for thm in thms.theorems:
             print(f"  Try {thm}")
-            env = TemplateEnv(pet, cfg.workspace, thms.file, thm)
-            log_file = os.path.join(log_dir, f"{thms.file}:{thm}")
+            env = env_cls(pet, cfg.workspace, thms.file, thm)
+            log_file = os.path.join(log_dir, f"{thms.file}:{thm}.jsonl")
             agent = GPT(
                 log_file,
                 cfg.agent.model_id,
