@@ -15,8 +15,7 @@ class LLM(ABC):
     """
 
     def __init__(self, log_file: str):
-        dt = datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.log_file = f"{log_file}_{dt}.jsonl"
+        self.log_file = log_file
 
     def log(self, message: ChatCompletionMessageParam):
         with open(self.log_file, "a") as file:
@@ -96,7 +95,7 @@ class Ghost(LLM):
 
     def __init__(self, source_file):
         source = Path(source_file)
-        super().__init__(os.path.join(source.parent, f"{source.stem}_replay"))
+        super().__init__(os.path.join(source.parent, f"{source.stem}_replay.jsonl"))
         logs = []
         with open(source_file, "r") as file:
             for line in file:
