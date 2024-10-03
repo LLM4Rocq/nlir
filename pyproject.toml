@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "nlir"
+version = "0.1.0"
+description = "Natural language based agents for mechanized theorem proving with Coq"
+authors = [
+  "Guillaume Baudart <guillaume.baudart@inria.fr>",
+  "Emilio Jesus Gallego Arias <emilio-jesus.gallego-arias@inria.fr>",
+  "Marc Lelarge <marc.lelarge@inria.fr>",
+  "Laetitia Teodorescu <laetitia@adaptive-ml.com>",
+]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+hydra-core = "^1.3.2"
+openai = "^1.50.2"
+pytanque = {path = "../pytanque", develop = true}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+nlir = "main:run"

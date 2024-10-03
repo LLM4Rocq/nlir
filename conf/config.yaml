@@ -1,0 +1,26 @@
+workspace: "examples"
+file: "foo.v"
+thm: "foo"
+
+petanque:
+  address: 127.0.0.1
+  port: 8765
+  timeout: 10
+  run_opts: null
+
+agent:
+  kind: gpt
+  model_id: gpt-4o
+  temperature: 1.0
+  source_file: none
+
+search:
+  kind: tactics
+  mode: naive
+  max_steps: 15
+
+defaults:
+  - override hydra/job_logging: none
+  - override hydra/hydra_logging: none
+
+
