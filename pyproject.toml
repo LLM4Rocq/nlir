@@ -20,6 +20,3 @@ pytanque = {git = "https://github.com/LLM4Coq/pytanque.git", branch = "search" }
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-nlir = "main:run"

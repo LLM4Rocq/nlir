@@ -19,7 +19,7 @@ $ pet-server
 
 Then (in another terminal)
 ```
-$ python main.py
+$ python -m nlir
 ```
 
 You should see each iteration of the proof in stdout.

@@ -8,7 +8,7 @@ from nlir.petanque import TacticEnv, TemplateEnv
 from nlir.search import naive_search
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config")
+@hydra.main(version_base=None, config_path="../conf", config_name="config")
 def run(cfg: DictConfig) -> None:
     match cfg.agent.kind:
         case "ghost":
