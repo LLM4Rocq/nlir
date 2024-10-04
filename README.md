@@ -24,6 +24,9 @@ $ python nlir-cli.py prove -f foo.v -t foo
 
 You should see each iteration of the proof in stdout.
 
+Note: The default Coq workspace is `examples` which contains `foo.v` (see default config in `conf/config.yaml`).
+You can use a different config file with the `-c` option (see below for all the options).
+
 To replay a proof from a conversation log:
 
 ```
