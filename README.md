@@ -6,7 +6,7 @@
 pip install -e .
 ```
 
-To run the agent, you also need to install [coq-lsp](https://github.com/ejgallego/coq-lsp)
+To run the agent, you also need to install [coq-lsp](https://github.com/ejgallego/coq-lsp) >= 0.2.0 . On Unix-like systems, this is best done using the [OPAM package manager](https://opam.ocaml.org/), then do `opam install coq-lsp`.
 
 ## Getting started
 
