@@ -1,17 +1,30 @@
-from .petanque import TacticEnv
+from .petanque import Env
+from .agent import LLM
+from dataclasses import dataclass
+from typing import List
 
 
-def naive_search(agent, env, max_steps: int):
+@dataclass
+class Status:
+    steps: int
+    success: bool
+
+
+def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
     response = agent.response(env.prompt)  # Initial step
     for step in range(max_steps):
         env.exec(response)
         print(env.proof)
         if env.proof_finished:
-            agent.log({"role": "user", "Final Proof": " ".join(env.proof)})
-            return {"Proof Finished": env.proof, "steps": step}
+            proof = " ".join(env.proof)
+            agent.log({"role": "user", "content": f"Final Proof: {proof}"})
+            return Status(step, True)
         else:
             response = agent.response(env.prompt)
 
     if not env.proof_finished:
-        agent.log({"Partial Proof": " ".join(env.proof)})
-        return {"Partial Proof": env.proof}
+        proof = " ".join(env.proof)
+        agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
+        return Status(max_steps, False)
+
+    raise RuntimeError("Unreachable code.")

@@ -1,5 +1,6 @@
 import os
 import hydra
+import json
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 from pytanque import Pytanque
@@ -8,7 +9,7 @@ from nlir.petanque import TacticEnv, TemplateEnv
 from nlir.search import naive_search
 
 
-@hydra.main(version_base=None, config_path="../conf", config_name="config")
+@hydra.main(version_base=None, config_path="conf", config_name="config")
 def run(cfg: DictConfig):
 
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
@@ -35,10 +36,14 @@ def run(cfg: DictConfig):
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
+    results = {"names": [], "success": [], "steps": []}
+
+    res_file = os.path.join(log_dir, "eval_results.json")
+
     for thms in cfg.benchmark:
-        print(f"Inspecting {thms.file}")
+        print(f"From {thms.file}")
         for thm in thms.theorems:
-            print(f"  Try {thm}")
+            print(f"  Try to prove {thm}")
             env = env_cls(pet, cfg.workspace, thms.file, thm)
             log_file = os.path.join(log_dir, f"{thms.file}:{thm}.jsonl")
             agent = GPT(
@@ -46,7 +51,12 @@ def run(cfg: DictConfig):
                 cfg.agent.model_id,
                 cfg.agent.temperature,
             )
-            search(agent, env, cfg.search.max_steps)
+            status = search(agent, env, cfg.search.max_steps)
+            results["names"].append(f"{env.file}:{env.thm}")
+            results["success"].append(status.success)
+            results["steps"].append(status.steps)
+            with open(res_file, "w") as rf:
+                json.dump(results, rf, indent=2)
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ def pp_goals(gs: list[Goal]) -> str:
     return "\n".join(pp_goal(g) for g in gs)
 
 
-def remove_comments(code):
+def remove_comments(code: str) -> str:
     """
     Remove coq nested comments, e.g., (* this is a comment (* - induction n *) *).
     """

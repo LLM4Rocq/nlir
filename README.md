@@ -10,7 +10,7 @@ To run the agent, you also need to install [coq-lsp](https://github.com/ejgalleg
 
 ## Getting started
 
-The configuration can be found in `conf/config.yaml`
+The default configuration can be found in `conf/config.yaml`
 To try the agent, first launch `pet-server` in a terminal
 
 ```bash
@@ -19,10 +19,24 @@ $ pet-server
 
 Then (in another terminal)
 ```
-$ python -m nlir
+$ python nlir-cli.py prove -f foo.v -t foo
 ```
 
 You should see each iteration of the proof in stdout.
+
+To replay a proof from a conversation log:
+
+```
+$ python nlir-cli.py replay -l foo.v:foo_XXX-XXX.jsonl -f foo.v -t foo
+```
+
+## Benchmark
+
+To try a complete benchmark (e.g., the one in `conf/benchmark/example.yaml`)
+
+```
+$ python nlir-bench.py
+```
 
 The conversation logs should be stored in `./outputs`
 
@@ -65,7 +79,3 @@ Benchmark (in `conf/benchmark/`, see e.g., `example.yaml`)
   theorems:
     - bar
 ```
-
-## Replayer
-
-see `nlir/replay.py` for an example.

@@ -4,7 +4,6 @@ import json
 from abc import ABC, abstractmethod
 from typing import Iterable
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
-from datetime import datetime
 from pathlib import Path
 
 
@@ -17,7 +16,7 @@ class LLM(ABC):
     def __init__(self, log_file: str):
         self.log_file = log_file
 
-    def log(self, message: ChatCompletionMessageParam):
+    def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
         with open(self.log_file, "a") as file:
             match message:
                 case ChatCompletionMessage():
