@@ -3,30 +3,30 @@ import sys
 from pytanque import Pytanque
 from nlir.agent import LLM, Ghost, GPT
 from nlir.petanque import Env, TacticEnv, TemplateEnv
-from nlir.search import naive_search
+from nlir.search import naive_search, Status
 from pathlib import Path
 from hydra import compose, initialize
 from datetime import datetime
 from omegaconf import DictConfig
-from typing import Callable, Type, Any
+from typing import Callable, Type
 
 
 def load_conf(
-    conf: str,
-) -> tuple[DictConfig, Pytanque, Type[Env], Callable[[LLM, Env, int], Any]]:
+    conf_file: str,
+) -> tuple[DictConfig, Pytanque, Path, Type[Env], Callable[[LLM, Env, int], Status]]:
 
     # Load config
-    cfg_path = Path(conf)
-    print(cfg_path.absolute())
+    cfg_path = Path("conf")
     if not cfg_path.exists():
-        print(f"Default config not found", file=sys.stderr)
+        print(f"Config files should be in the conf directory.", file=sys.stderr)
         sys.exit(1)
     with initialize(version_base=None, config_path=str(cfg_path)):
-        cfg = compose(config_name="config")
+        cfg = compose(config_name=conf_file)
 
+    wk_path = Path(cfg.workspace).expanduser().absolute()
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
     pet.connect()
-    pet.set_workspace(False, cfg.workspace)
+    pet.set_workspace(False, str(wk_path))
 
     match cfg.search.kind:
         case "tactics":
@@ -46,7 +46,7 @@ def load_conf(
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
-    return cfg, pet, env_cls, search
+    return cfg, pet, wk_path, env_cls, search
 
 
 @click.group()
@@ -58,21 +58,23 @@ def cli():
 @click.option("-f", "--file", help="Coq file", required=True)
 @click.option("-t", "--thm", help="theorem name", required=True)
 @click.option("-l", "--log-file", help="conversation log", required=True)
-@click.option("-c", "--conf", help="conf directory", default="conf")
-def replay(file: str, thm: str, log_file, conf):
+@click.option("-c", "--conf", help="conf directory", default="config")
+def replay(file: str, thm: str, log_file, conf: str):
     """
     Use a log file to replay a conversation
     """
 
-    cfg, pet, env_cls, search = load_conf(conf)
+    cfg, pet, wk_path, env_cls, search = load_conf(conf)
 
     source_path = Path(log_file)
     if not source_path.exists():
         print(f"Log file {log_file} not found", file=sys.stderr)
         sys.exit(1)
 
+    file_path = Path(wk_path, file)
+
     print(f"Replay the proof of {thm} from {file}")
-    env = env_cls(pet, cfg.workspace, file, thm)
+    env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
     agent = Ghost(source_path.resolve())
     search(agent, env, cfg.search.max_steps)
 
@@ -86,13 +88,14 @@ def prove(file: str, thm: str, conf: str):
     Use the configs and logs in log_dir to replay the proof.
     """
 
-    cfg, pet, env_cls, search = load_conf(conf)
+    cfg, pet, wk_path, env_cls, search = load_conf(conf)
 
+    file_path = Path(wk_path, file)
     dt = datetime.now().strftime("%y%m%d-%H%M%S")
     log_file = f"{file}:{thm}_{dt}.jsonl"
 
     print(f"Try to prove {thm} from {file}")
-    env = env_cls(pet, cfg.workspace, file, thm)
+    env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
     agent = agent = GPT(
         log_file,
         cfg.agent.model_id,

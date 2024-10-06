@@ -7,14 +7,16 @@ from pytanque import Pytanque
 from nlir.agent import GPT
 from nlir.petanque import TacticEnv, TemplateEnv
 from nlir.search import naive_search
+from pathlib import Path
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def run(cfg: DictConfig):
 
+    wk_path = Path(cfg.workspace).expanduser().absolute()
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
     pet.connect()
-    pet.set_workspace(False, cfg.workspace)
+    pet.set_workspace(False, str(wk_path))
 
     log_dir = HydraConfig.get().runtime.output_dir
 
@@ -44,7 +46,8 @@ def run(cfg: DictConfig):
         print(f"From {thms.file}")
         for thm in thms.theorems:
             print(f"  Try to prove {thm}")
-            env = env_cls(pet, cfg.workspace, thms.file, thm)
+            file_path = Path(wk_path, thms.file)
+            env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
             log_file = os.path.join(log_dir, f"{thms.file}:{thm}.jsonl")
             agent = GPT(
                 log_file,
