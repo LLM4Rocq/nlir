@@ -16,7 +16,7 @@ def load_conf(
 ) -> tuple[DictConfig, Pytanque, Path, Type[Env], Callable[[LLM, Env, int], Status]]:
 
     # Load config
-    cfg_path = Path("conf")
+    cfg_path = Path("./conf")
     if not cfg_path.exists():
         print(f"Config files should be in the conf directory.", file=sys.stderr)
         sys.exit(1)
@@ -82,7 +82,7 @@ def replay(file: str, thm: str, log_file, conf: str):
 @cli.command()
 @click.option("-f", "--file", help="Coq file", required=True)
 @click.option("-t", "--thm", help="theorem name", required=True)
-@click.option("-c", "--conf", help="conf directory", default="conf")
+@click.option("-c", "--conf", help="conf file", default="config.yaml")
 def prove(file: str, thm: str, conf: str):
     """
     Use the configs and logs in log_dir to replay the proof.
