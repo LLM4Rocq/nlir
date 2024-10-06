@@ -63,3 +63,10 @@ Ready? Here is the current goal.
 
 Take a deep breath and walk me through the proof.
 """
+
+
+context = """
+Here are some useful definitions and lemmas:
+
+{context}
+"""

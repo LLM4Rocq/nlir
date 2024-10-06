@@ -86,13 +86,26 @@ def split_proof(
     return tactics
 
 
+def get_context(doc: str, thm: str) -> str:
+    """
+    Remove all proof to get context
+    """
+    pattern = r"Proof\.(.*?)(Qed|Admitted|Abort)\."
+    cleaned_text = re.sub(pattern, "", doc, flags=re.DOTALL)
+    lines = cleaned_text.split("\n")
+    for i, l in enumerate(lines):
+        if thm in l:
+            return "\n".join(lines[:i])
+    return cleaned_text
+
+
 class Env(ABC):
     """
     Base class for a Petanque environment.
     `exec` and `output` need to be defined for `search`
     """
 
-    def __init__(self, pet, workspace, file, thm):
+    def __init__(self, pet, workspace, file, thm, context):
         self.pet = pet
         self.workspace = workspace
         self.file = file
@@ -102,6 +115,9 @@ class Env(ABC):
         self.initial_state: State = self.pet.start(self.path, thm)
         self.thm_code = pp_goals(self.pet.goals(self.initial_state))
         self.n_interactions = 0
+        if context:
+            with open(self.path, "r") as file:
+                self.context = get_context(file.read(), thm)
 
     @property
     @abstractmethod
@@ -123,8 +139,10 @@ class TacticEnv(Env):
     Tactic-by-tactic proof construction.
     """
 
-    def __init__(self, pet: Pytanque, workspace: str, file: str, thm: str):
-        super().__init__(pet, workspace, file, thm)
+    def __init__(
+        self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool
+    ):
+        super().__init__(pet, workspace, file, thm, context)
         self.state: State = self.initial_state
         self.previous_unsuccessful = []
 
@@ -218,8 +236,10 @@ class TemplateEnv(Env):
     Hierarchical proof templating agent
     """
 
-    def __init__(self, pet: Pytanque, workspace: str, file: str, thm: str):
-        super().__init__(pet, workspace, file, thm)
+    def __init__(
+        self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool
+    ):
+        super().__init__(pet, workspace, file, thm, context)
         self.template = Template(state=self.initial_state, proof=[])
         self.holes: deque[Template] = deque([self.template])
 
@@ -339,8 +359,9 @@ class TemplateEnv(Env):
         """
         if self.holes:
             h = self.holes[0]
+            context = template_prompts.context.format(context=self.context)
             content = template_prompts.user_prompt.format(
-                context="",
+                context=context,
                 theorem_name=self.thm,
                 theorem_code=self.thm_code,
                 goal=pp_goals(self.pet.goals(h.state)),

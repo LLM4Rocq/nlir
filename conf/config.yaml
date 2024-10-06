@@ -5,6 +5,7 @@ petanque:
   port: 8765
   timeout: 10
   run_opts: null
+  context: true
 
 agent:
   model_id: gpt-4o
@@ -12,7 +13,7 @@ agent:
   source_file: none
 
 search:
-  kind: tactics
+  kind: template
   mode: naive
   max_steps: 15
 
