@@ -118,6 +118,8 @@ class Env(ABC):
         if context:
             with open(self.path, "r") as file:
                 self.context = get_context(file.read(), thm)
+        else:
+            self.context = None
 
     @property
     @abstractmethod
@@ -359,7 +361,10 @@ class TemplateEnv(Env):
         """
         if self.holes:
             h = self.holes[0]
-            context = template_prompts.context.format(context=self.context)
+            if self.context:
+                context = template_prompts.context.format(context=self.context)
+            else:
+                context = ""
             content = template_prompts.user_prompt.format(
                 context=context,
                 theorem_name=self.thm,
