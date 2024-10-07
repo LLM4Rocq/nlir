@@ -19,18 +19,18 @@ $ pet-server
 
 Then (in another terminal)
 ```
-$ python nlir-cli.py prove -f foo.v -t foo
+$ python nlir-cli.py +file=foo.v +thm=foo
 ```
 
 You should see each iteration of the proof in stdout.
 
 Note: The default Coq workspace is `examples` which contains `foo.v` (see default config in `conf/config.yaml`).
-You can use a different config file with the `-c` option (see below for all the options).
+You can change all these options with the `field=...` syntax (e.g., `+workspace=./examples`).
 
 To replay a proof from a conversation log:
 
 ```
-$ python nlir-cli.py replay -l foo.v:foo_XXX-XXX.jsonl -f foo.v -t foo
+$ python nlir-cli.py +file=foo.v +thm=foo +replay=foo.v:foo_241007-174135.jsonl
 ```
 
 ## Benchmark

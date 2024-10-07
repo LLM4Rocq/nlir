@@ -1,27 +1,19 @@
-import click
-import sys
 from pytanque import Pytanque
 from nlir.agent import LLM, Ghost, GPT
 from nlir.petanque import Env, TacticEnv, TemplateEnv
 from nlir.search import naive_search, Status
 from pathlib import Path
-from hydra import compose, initialize
+import hydra
 from datetime import datetime
 from omegaconf import DictConfig
-from typing import Callable, Type
 
 
-def load_conf(
-    conf_file: str,
-) -> tuple[DictConfig, Pytanque, Path, Type[Env], Callable[[LLM, Env, int], Status]]:
-
-    # Load config
-    cfg_path = Path("./conf")
-    if not cfg_path.exists():
-        print(f"Config files should be in the conf directory.", file=sys.stderr)
-        sys.exit(1)
-    with initialize(version_base=None, config_path=str(cfg_path)):
-        cfg = compose(config_name=conf_file)
+@hydra.main(version_base=None, config_path="conf", config_name="config")
+def main(cfg: DictConfig):
+    """
+    Try to prove the theorem `cfg.thm` from file `cfg.file`.
+    If option replay is set to a log file, replay the conversation from the logs
+    """
 
     wk_path = Path(cfg.workspace).expanduser().absolute()
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
@@ -46,63 +38,25 @@ def load_conf(
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
-    return cfg, pet, wk_path, env_cls, search
-
-
-@click.group()
-def cli():
-    pass
-
-
-@cli.command()
-@click.option("-f", "--file", help="Coq file", required=True)
-@click.option("-t", "--thm", help="theorem name", required=True)
-@click.option("-l", "--log-file", help="conversation log", required=True)
-@click.option("-c", "--conf", help="conf directory", default="config")
-def replay(file: str, thm: str, log_file, conf: str):
-    """
-    Use a log file to replay a conversation
-    """
-
-    cfg, pet, wk_path, env_cls, search = load_conf(conf)
-
-    source_path = Path(log_file)
-    if not source_path.exists():
-        print(f"Log file {log_file} not found", file=sys.stderr)
-        sys.exit(1)
-
-    file_path = Path(wk_path, file)
-
-    print(f"Replay the proof of {thm} from {file}")
-    env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
-    agent = Ghost(source_path.resolve())
-    search(agent, env, cfg.search.max_steps)
-
-
-@cli.command()
-@click.option("-f", "--file", help="Coq file", required=True)
-@click.option("-t", "--thm", help="theorem name", required=True)
-@click.option("-c", "--conf", help="conf file", default="config.yaml")
-def prove(file: str, thm: str, conf: str):
-    """
-    Use the configs and logs in log_dir to replay the proof.
-    """
-
-    cfg, pet, wk_path, env_cls, search = load_conf(conf)
-
-    file_path = Path(wk_path, file)
     dt = datetime.now().strftime("%y%m%d-%H%M%S")
-    log_file = f"{file}:{thm}_{dt}.jsonl"
+    log_file = f"{cfg.file}:{cfg.thm}_{dt}.jsonl"
+    file_path = Path(wk_path, cfg.file)
 
-    print(f"Try to prove {thm} from {file}")
-    env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
-    agent = agent = GPT(
-        log_file,
-        cfg.agent.model_id,
-        cfg.agent.temperature,
-    )
+    if hasattr(cfg, "replay"):
+        source_path = Path(cfg.replay)
+        agent = Ghost(source_path.resolve())
+    else:
+        agent = agent = GPT(
+            log_file,
+            cfg.agent.model_id,
+            cfg.agent.temperature,
+        )
+
+    env = env_cls(pet, str(wk_path), str(file_path), cfg.thm, cfg.petanque.context)
+
+    print(f"Try to prove {cfg.thm} from {cfg.file}")
     search(agent, env, cfg.search.max_steps)
 
 
 if __name__ == "__main__":
-    cli()
+    main()
