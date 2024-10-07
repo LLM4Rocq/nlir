@@ -1,4 +1,5 @@
 workspace: "examples"
+num_theorems: 3
 
 petanque:
   address: 127.0.0.1
@@ -10,12 +11,11 @@ petanque:
 agent:
   model_id: gpt-4o
   temperature: 1.0
-  source_file: none
 
 search:
   kind: template
   mode: naive
-  max_steps: 15
+  max_steps: 10
 
 defaults:
   - _self_

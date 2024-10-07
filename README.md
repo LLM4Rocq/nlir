@@ -43,6 +43,13 @@ $ python nlir-bench.py
 
 The conversation logs should be stored in `./outputs`
 
+To launch one of the actual benchmark.
+You need to clone it first (e.g., in `../lf` for logical_foundations), and then:
+
+```
+python nlir-bench.py workspace=../lf benchmark=logical_foundations
+```
+
 ## Config
 
 Main config (in `conf/config.yaml`)

@@ -66,24 +66,24 @@ def run(cfg: DictConfig):
 
     res_file = os.path.join(log_dir, "eval_results.json")
 
-    for thms in cfg.benchmark:
-        print(f"From {thms.file}")
-        for thm in thms.theorems:
-            print(f"  Try to prove {thm}")
-            file_path = Path(wk_path, thms.file).absolute()
-            env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
-            log_file = os.path.join(log_dir, f"{thms.file}:{thm}.jsonl")
-            agent = GPT(
-                log_file,
-                cfg.agent.model_id,
-                cfg.agent.temperature,
-            )
-            status = search(agent, env, cfg.search.max_steps)
-            results["names"].append(f"{env.file}:{env.thm}")
-            results["success"].append(status.success)
-            results["steps"].append(status.steps)
-            with open(res_file, "w") as rf:
-                json.dump(results, rf, indent=2)
+    theorems = [(thms.file, thm) for thms in cfg.benchmark for thm in thms.theorems]
+
+    for file, thm in theorems[: cfg.num_theorems]:
+        print(f"Try to prove {thm} from {file}")
+        file_path = Path(wk_path, file).absolute()
+        env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
+        log_file = os.path.join(log_dir, f"{file}:{thm}.jsonl")
+        agent = GPT(
+            log_file,
+            cfg.agent.model_id,
+            cfg.agent.temperature,
+        )
+        status = search(agent, env, cfg.search.max_steps)
+        results["names"].append(f"{env.file}:{env.thm}")
+        results["success"].append(status.success)
+        results["steps"].append(status.steps)
+        with open(res_file, "w") as rf:
+            json.dump(results, rf, indent=2)
 
 
 if __name__ == "__main__":

@@ -1,19 +1,19 @@
 - file: Basics.v
   theorems:
-    - plus_id_exercise2
+    - plus_id_exercise
     - mult_n_1
     - andb_true_elim2
     - zero_nbeq_plus_1
     - identity_fn_applied_twice
     - andb_eq_orb
-    - letter_comparison_Eq2
+    - letter_comparison_Eq
     - lower_letter_lowers
     - lower_grade_F_Minus
     - no_penalty_for_mostly_on_time
     - grade_lowered_once
 - file: Lists.v
   theorems: 
-    - snd_fst_is_swap2
+    - snd_fst_is_swap
     - fst_swap_is_snd
     - app_nil_r
     - rev_app_distr
