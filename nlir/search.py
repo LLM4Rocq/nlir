@@ -17,8 +17,12 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
         print(env.proof)
         if env.proof_finished:
             proof = " ".join(env.proof)
-            agent.log({"role": "user", "content": f"Final Proof: {proof}"})
-            return Status(step, True)
+            if env.check_proof():
+                agent.log({"role": "user", "content": f"Final Proof: {proof}"})
+                return Status(step, True)
+            else:
+                agent.log({"role": "user", "content": f"Failed Proof: {proof}"})
+                return Status(step, False)
         else:
             if len(str(env.prompt)) > 100000:
                 # prompt is too big!

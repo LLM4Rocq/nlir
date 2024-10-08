@@ -135,6 +135,19 @@ class Env(ABC):
     def prompt(self) -> Iterable[ChatCompletionMessageParam]:
         pass
 
+    def check_proof(self) -> bool:
+        """
+        Double check the proof, re-running all tactics from the initial state.
+        """
+        try:  # double check the proof
+            s = self.initial_state
+            for tac in self.proof:
+                s = self.pet.run_tac(s, tac)
+            self.pet.run_tac(s, "Qed.")
+            return True
+        except PetanqueError:
+            return False
+
 
 class TacticEnv(Env):
     """
@@ -323,19 +336,9 @@ class TemplateEnv(Env):
 
     @property
     def proof_finished(self) -> bool:
-        """
-        Double check the proof, re-running all tactics from the initial state.
-        """
         if self.holes:
             return False
-        try:  # double check the proof
-            s = self.initial_state
-            for tac in self.proof:
-                s = self.pet.run_tac(s, tac)
-            self.pet.run_tac(s, "Qed.")
-            return True
-        except PetanqueError:
-            return False
+        return self.check_proof()
 
     def exec(self, message: ChatCompletionMessage):
         """
