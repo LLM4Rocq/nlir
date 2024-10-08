@@ -2,6 +2,7 @@ import hydra
 import sys
 import os
 import json
+import numpy as np
 from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
 from nlir.agent import Ghost, GPT
@@ -109,7 +110,8 @@ def main(cfg: DictConfig):
 
         print(f"\n\n--- Summary ---")
         print(f"Theorems: {len(theorems)}")
-        print(f"Successes: {len(results["success"])}")
+        print(f"Successes: {np.sum(results["success"])}")
+        print(f"Average number of steps: {np.mean(results["steps"])}")
         print("---\n\n")
         sys.exit(0)
 
