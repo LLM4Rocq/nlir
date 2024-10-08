@@ -1,12 +1,17 @@
 workspace: "examples"
-num_theorems: 3
+file: null
+theorem: null
+replay: false
+benchmark: null
+num_theorems: null
+
 
 petanque:
   address: 127.0.0.1
   port: 8765
   timeout: 10
   run_opts: null
-  context: true
+  context: false
 
 agent:
   model_id: gpt-4o
@@ -17,9 +22,31 @@ search:
   mode: naive
   max_steps: 10
 
+hydra:
+  help:
+    app_name: nlri-cli
+
+    template: |
+      ${hydra.help.header}
+      There are two possible modes:
+      - Use options `file=my_file.v` and `theorem=my_thm` to prove one theorem.
+      - Use option `benchmark=my_bench.yaml` to test a full benchmark.
+
+      Alternatively you can use your own config file with the option `--config-name myconf.yaml`.
+      Config files should be in the `conf` directory.
+
+      == Config ==
+      Override anything in the config (foo.bar=value)
+
+      $CONFIG
+
+      ${hydra.help.footer}
+
+
+
 defaults:
   - _self_
-  - benchmark: example
+  - benchmark: null
   - override hydra/job_logging: none
   - override hydra/hydra_logging: none
 

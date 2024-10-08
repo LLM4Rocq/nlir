@@ -1,20 +1,40 @@
-from pytanque import Pytanque
-from nlir.agent import LLM, Ghost, GPT
-from nlir.petanque import Env, TacticEnv, TemplateEnv
+import hydra
+import sys
+import os
+import json
+from hydra.core.hydra_config import HydraConfig
+from pytanque import Pytanque, PetanqueError
+from nlir.agent import Ghost, GPT
+from nlir.petanque import TacticEnv, TemplateEnv
 from nlir.search import naive_search, Status
 from pathlib import Path
-import hydra
 from datetime import datetime
 from omegaconf import DictConfig
+
+def check_benchmark(
+    pet: Pytanque, wk_path: Path, cfg: DictConfig
+) -> list[tuple[Path, str]]:
+    errors = []
+    theorems = []
+    for thms in cfg.benchmark:
+        file_path = Path(wk_path, thms.file).absolute()
+        for thm in thms.theorems:
+            try:
+                pet.start(str(file_path), thm)
+                theorems.append((file_path, thm))
+            except PetanqueError as err:
+                errors.append(f"- File {thms.file} {thm}: {err.message}")
+    if not errors:
+        print(f"Benchmarking {len(theorems)} theorems in {len(cfg.benchmark)} files")
+    else:
+        print(f"Config contains the following errors:", file=sys.stderr)
+        print("\n".join(errors), file=sys.stderr)
+        sys.exit(1)
+    return theorems
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
-    """
-    Try to prove the theorem `cfg.thm` from file `cfg.file`.
-    If option replay is set to a log file, replay the conversation from the logs
-    """
-
     wk_path = Path(cfg.workspace).expanduser().absolute()
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
     pet.connect()
@@ -38,24 +58,64 @@ def main(cfg: DictConfig):
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
-    dt = datetime.now().strftime("%y%m%d-%H%M%S")
-    log_file = f"{cfg.file}:{cfg.thm}_{dt}.jsonl"
-    file_path = Path(wk_path, cfg.file)
+    if cfg.theorem and cfg.file:
+        # Only prove thm from file (ignore benchmark)
+        dt = datetime.now().strftime("%y%m%d-%H%M%S")
+        log_file = f"{cfg.file}:{cfg.theorem}_{dt}.jsonl"
+        file_path = Path(wk_path, cfg.file)
 
-    if hasattr(cfg, "replay"):
-        source_path = Path(cfg.replay)
-        agent = Ghost(source_path.resolve())
+        if cfg.replay:
+            source_path = Path(cfg.replay)
+            agent = Ghost(source_path.resolve())
+        else:
+            agent = agent = GPT(
+                log_file,
+                cfg.agent.model_id,
+                cfg.agent.temperature,
+            )
+
+        env = env_cls(pet, str(wk_path), str(file_path), cfg.theorem, cfg.petanque.context)
+
+        print(f"Try to prove {cfg.theorem} from {cfg.file}")
+        status = search(agent, env, cfg.search.max_steps)
+        print(f"\n\n--- Success: {status.success} ---")
+        print(f"Proof: {env.proof}")
+        print("---\n\n")
+        sys.exit(0)
+
+    elif cfg.benchmark:
+        # Try the full benchmark
+        log_dir = HydraConfig.get().runtime.output_dir
+
+        results = {"names": [], "success": [], "steps": []}
+        res_path = Path(log_dir, "eval_results.json")
+        theorems = check_benchmark(pet, wk_path, cfg)
+
+        for file_path, thm in theorems[: cfg.num_theorems]:
+            print(f"\n\nTrying to prove {thm} from {file_path.stem}")
+            env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
+            log_file = os.path.join(log_dir, f"{file_path.stem}:{thm}.jsonl")
+            agent = GPT(
+                log_file,
+                cfg.agent.model_id,
+                cfg.agent.temperature,
+            )
+            status = search(agent, env, cfg.search.max_steps)
+            results["names"].append(f"{env.file}:{env.thm}")
+            results["success"].append(status.success)
+            results["steps"].append(status.steps)
+            with open(res_path, "w") as rf:
+                json.dump(results, rf, indent=2)
+
+        print(f"\n\n--- Summary ---")
+        print(f"Theorems: {len(theorems)}")
+        print(f"Successes: {len(results["success"])}")
+        print("---\n\n")
+        sys.exit(0)
+
     else:
-        agent = agent = GPT(
-            log_file,
-            cfg.agent.model_id,
-            cfg.agent.temperature,
-        )
-
-    env = env_cls(pet, str(wk_path), str(file_path), cfg.thm, cfg.petanque.context)
-
-    print(f"Try to prove {cfg.thm} from {cfg.file}")
-    search(agent, env, cfg.search.max_steps)
+        print("Nothing to do. Try --help for more.", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
