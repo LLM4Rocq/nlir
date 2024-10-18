@@ -18,9 +18,11 @@ agent:
   temperature: 1.0
 
 search:
-  kind: template
-  mode: naive
+  kind: tactics #template
+  mode: beam #naive
   max_steps: 10
+  beam_size: 3
+  n_responses: 2
 
 hydra:
   help:

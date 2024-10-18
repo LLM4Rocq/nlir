@@ -7,10 +7,11 @@ from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
 from nlir.agent import Ghost, GPT
 from nlir.petanque import TacticEnv, TemplateEnv
-from nlir.search import naive_search, Status
+from nlir.search import naive_search, Status, beam_search
 from pathlib import Path
 from datetime import datetime
 from omegaconf import DictConfig
+from functools import partial
 
 def check_benchmark(
     pet: Pytanque, wk_path: Path, cfg: DictConfig
@@ -55,7 +56,7 @@ def main(cfg: DictConfig):
         case "naive":
             search = naive_search
         case "beam":
-            raise NotImplementedError
+            search = partial(beam_search, beam_size=cfg.search.beam_size, n_reponses=cfg.search.n_responses)
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
@@ -69,7 +70,7 @@ def main(cfg: DictConfig):
             source_path = Path(cfg.replay)
             agent = Ghost(source_path.resolve())
         else:
-            agent = agent = GPT(
+            agent = GPT(
                 log_file,
                 cfg.agent.model_id,
                 cfg.agent.temperature,
@@ -80,7 +81,7 @@ def main(cfg: DictConfig):
         print(f"Try to prove {cfg.theorem} from {cfg.file}")
         status = search(agent, env, cfg.search.max_steps)
         print(f"\n\n--- Success: {status.success} ---")
-        print(f"Proof: {env.proof}")
+        print(f"Proof: {status.proof}")
         print("---\n\n")
         sys.exit(0)
 

@@ -52,3 +52,23 @@ Here are the previous unsuccessful proof step attempts. These have all been trie
 
 {current_goal}
 """
+
+prompt_for_comparison = """
+### Current goal(s)
+
+{current_goal}
+
+### Proof
+
+Here are the proof steps until now:
+
+{proof_steps}
+
+You have interacted {n_interactions} times with the engine.
+
+### Previous unsuccessful steps
+
+Here are the previous unsuccessful proof step attempts. 
+
+{previous_unsuccessful}
+"""

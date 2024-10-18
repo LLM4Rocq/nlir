@@ -7,7 +7,7 @@ from typing import Iterable, Union, Tuple
 from pytanque import Pytanque, State, Goal, PetanqueError
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .prompts import tactic_prompts, template_prompts
-
+import copy
 
 def pp_goal(g: Goal) -> str:
     """
@@ -135,6 +135,14 @@ class Env(ABC):
     def prompt(self) -> Iterable[ChatCompletionMessageParam]:
         pass
 
+    def deepcopy(self):
+        new = self.__class__(self.pet, self.workspace, self.file, self.thm, self.context)
+        new.proof = copy.deepcopy(self.proof)
+        new.n_interactions = copy.deepcopy(self.n_interactions)
+        new.state = copy.deepcopy(self.state)
+        new.previous_unsuccessful = copy.deepcopy(self.previous_unsuccessful)
+        return new
+
     def check_proof(self) -> bool:
         """
         Double check the proof, re-running all tactics from the initial state.
@@ -220,6 +228,17 @@ class TacticEnv(Env):
             {"role": "user", "content": content},
         ]
 
+    @property
+    def prompt_for_comparison(self) -> str:
+        """
+        Build the string containing the informations to be included in the comparison prompt.
+        """
+        return tactic_prompts.prompt_for_comparison.format(
+            current_goal=pp_goals(self.pet.goals(self.state)),
+            proof_steps=self.proof,
+            n_interactions=self.n_interactions,
+            previous_unsuccessful="\n".join(self.previous_unsuccessful),
+        )
 
 @dataclass
 class Template:

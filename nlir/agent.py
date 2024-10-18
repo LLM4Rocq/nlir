@@ -29,7 +29,7 @@ class LLM(ABC):
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
         """
-        Given an list of messages returns the Agent response.
+        Given a list of messages returns the Agent response.
         """
         pass
 
@@ -38,7 +38,7 @@ class LLM(ABC):
         self, messages: Iterable[ChatCompletionMessageParam], n: int
     ) -> list[ChatCompletionMessage]:
         """
-        Given an list of messages returns n possible responses.
+        Given a list of messages returns n possible responses.
         """
         pass
 
