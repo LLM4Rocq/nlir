@@ -72,7 +72,7 @@ Use --hydra-help to view Hydra specific help
 To replay the proof of `foo.v:foo` from a conversation log:
 
 ```
-$ python nlir-cli.py file=foo.v theorem=foo +replay=foo_logs.jsonl
+$ python nlir-cli.py file=foo.v theorem=foo ++replay=foo_logs.jsonl
 ```
 
 To try a theorem in a different workspace:

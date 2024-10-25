@@ -83,6 +83,8 @@ class GPT(LLM):
         resp = self.client.chat.completions.create(
             model=self.model_id, messages=messages, temperature=self.temperature, n=n
         )
+        for c in resp.choices:
+            self.log(c.message)
         return [c.message for c in resp.choices]
 
 
@@ -115,4 +117,8 @@ class Ghost(LLM):
     def multi_responses(
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
-        raise NotImplementedError
+        list(map(self.log, messages))
+        resp = [next(self.messages) for i in range(n)]
+        for r in resp:
+            self.log(r)
+        return [ChatCompletionMessage(**r) for r in resp]
