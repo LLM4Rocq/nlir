@@ -4,7 +4,7 @@ theorem: null
 replay: false
 benchmark: null
 num_theorems: null
-
+log_dir: "logs"
 
 petanque:
   address: 127.0.0.1
@@ -18,7 +18,7 @@ agent:
   temperature: 1.0
 
 search:
-  kind: tactics #template
+  kind: template #tactics 
   mode: beam #naive
   max_steps: 10
   beam_size: 3

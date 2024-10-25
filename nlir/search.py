@@ -37,7 +37,7 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
     if not env.proof_finished:
         proof = " ".join(env.proof)
         agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
-        return Status(max_steps, False)
+        return Status(max_steps, False, proof)
 
     raise RuntimeError("Unreachable code.")
 
@@ -103,10 +103,15 @@ def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses
                     new_beam.append(env_copy)
         
         if step < max_steps-1:
+            if new_beam:
             # sort new_bean
-            comparison_prompt = create_comparison_prompt(new_beam)
-            response = agent.response(comparison_prompt)
-            perm_indices = parse_comparison(response, len(new_beam))
-            beam = [new_beam[i] for i in perm_indices]
+                comparison_prompt = create_comparison_prompt(new_beam)
+                response = agent.response(comparison_prompt)
+                perm_indices = parse_comparison(response, len(new_beam))
+                beam = [new_beam[i] for i in perm_indices][:beam_size]
+            else:
+                raise RuntimeError("Empty beam.")
         else:
-            return Status(max_steps, False)
+            proof = " ".join(beam[0].proof)
+            agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
+            return Status(max_steps, False, proof)

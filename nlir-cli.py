@@ -63,7 +63,7 @@ def main(cfg: DictConfig):
     if cfg.theorem and cfg.file:
         # Only prove thm from file (ignore benchmark)
         dt = datetime.now().strftime("%y%m%d-%H%M%S")
-        log_file = f"{cfg.file}:{cfg.theorem}_{dt}.jsonl"
+        log_file = os.path.join(cfg.log_dir, f"{cfg.file}:{cfg.theorem}_{dt}.jsonl")
         file_path = Path(wk_path, cfg.file)
 
         if cfg.replay:

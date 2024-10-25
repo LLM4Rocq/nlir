@@ -70,3 +70,14 @@ Here are some useful definitions and lemmas:
 
 {context}
 """
+
+prompt_for_comparison = """
+### Proof
+
+Here is the current template proof until now:
+
+{template_proof}
+
+You have interacted {n_interactions} times with the engine.
+
+"""

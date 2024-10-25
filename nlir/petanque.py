@@ -135,14 +135,6 @@ class Env(ABC):
     def prompt(self) -> Iterable[ChatCompletionMessageParam]:
         pass
 
-    def deepcopy(self):
-        new = self.__class__(self.pet, self.workspace, self.file, self.thm, self.context)
-        new.proof = copy.deepcopy(self.proof)
-        new.n_interactions = copy.deepcopy(self.n_interactions)
-        new.state = copy.deepcopy(self.state)
-        new.previous_unsuccessful = copy.deepcopy(self.previous_unsuccessful)
-        return new
-
     def check_proof(self) -> bool:
         """
         Double check the proof, re-running all tactics from the initial state.
@@ -155,6 +147,12 @@ class Env(ABC):
             return True
         except PetanqueError:
             return False
+    
+    def deepcopy(self):
+        new = self.__class__(self.pet, self.workspace, self.file, self.thm, self.context)
+        new.proof = copy.deepcopy(self.proof)
+        new.n_interactions = copy.deepcopy(self.n_interactions)
+        return new
 
 
 class TacticEnv(Env):
@@ -183,6 +181,12 @@ class TacticEnv(Env):
             return [
                 tac for step in steps for tac in split_proof(step, add_delimiter=False)
             ]
+
+    def deepcopy(self):
+        new = super().deepcopy()
+        new.state = copy.deepcopy(self.state)
+        new.previous_unsuccessful = copy.deepcopy(self.previous_unsuccessful)
+        return new
 
     @property
     def proof_finished(self) -> bool:
@@ -277,6 +281,13 @@ class TemplateEnv(Env):
         self.template = Template(state=self.initial_state, proof=[])
         self.holes: deque[Template] = deque([self.template])
 
+    def deepcopy(self):
+        new = super().deepcopy()
+        memo = {}
+        new.template = copy.deepcopy(self.template, memo)
+        new.holes = copy.deepcopy(self.holes, memo)
+        return new
+
     def parse(self, message: ChatCompletionMessage) -> str:
         if message.content:
             tag_pattern = r"<proof>(.*?)</proof>"
@@ -357,7 +368,10 @@ class TemplateEnv(Env):
     def proof_finished(self) -> bool:
         if self.holes:
             return False
-        return self.check_proof()
+        return True
+        #return self.check_proof() # this is done in the search
+        # if there is no more holes and the proof is not correct,
+        # we reached a dead end -> failed proof
 
     def exec(self, message: ChatCompletionMessage):
         """
@@ -396,3 +410,13 @@ class TemplateEnv(Env):
             return [{"role": "user", "content": content}]
         else:
             raise RuntimeError("No more holes")
+        
+    @property
+    def prompt_for_comparison(self) -> str:
+        """
+        Build the string containing the informations to be included in the comparison prompt.
+        """
+        return template_prompts.prompt_for_comparison.format(
+            template_proof=self.template.tactics,
+            n_interactions=self.n_interactions,
+        )
