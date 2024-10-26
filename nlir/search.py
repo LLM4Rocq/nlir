@@ -6,7 +6,7 @@ import re
 from typing import Iterable
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .prompts import comparison_prompts
-
+from functools import partial
 
 @dataclass
 class Status:
@@ -79,8 +79,19 @@ def parse_comparison(message: ChatCompletionMessage, expanded_beam_size: int) ->
         parsed = list(range(expanded_beam_size))
     return parsed
 
+def sort_LLM(agent: LLM, new_beam: list[Env]) -> list[Env]:
+    comparison_prompt = create_comparison_prompt(new_beam)
+    response = agent.response(comparison_prompt)
+    perm_indices = parse_comparison(response, len(new_beam))
+    return [new_beam[i] for i in perm_indices]
 
-def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses: int) -> Status:
+def sort_holes(new_beam: list[Env]) -> list[Env]:
+    return sorted(new_beam, key=lambda x: len(x.holes))
+
+def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses: int, sorting_holes = True) -> Status:
+    sort_beam = partial(sort_LLM, agent=agent)
+    if sorting_holes:
+        sort_beam = sort_holes
     beam = [env]
     for step in range(max_steps):
         # expand bean
@@ -104,11 +115,9 @@ def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses
         
         if step < max_steps-1:
             if new_beam:
-            # sort new_bean
-                comparison_prompt = create_comparison_prompt(new_beam)
-                response = agent.response(comparison_prompt)
-                perm_indices = parse_comparison(response, len(new_beam))
-                beam = [new_beam[i] for i in perm_indices][:beam_size]
+            # sort new_beam
+                beam = sort_beam(new_beam)
+                beam = beam[:beam_size]
             else:
                 raise RuntimeError("Empty beam.")
         else:
