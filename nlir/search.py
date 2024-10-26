@@ -79,7 +79,7 @@ def parse_comparison(message: ChatCompletionMessage, expanded_beam_size: int) ->
         parsed = list(range(expanded_beam_size))
     return parsed
 
-def sort_LLM(agent: LLM, new_beam: list[Env]) -> list[Env]:
+def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
     comparison_prompt = create_comparison_prompt(new_beam)
     response = agent.response(comparison_prompt)
     perm_indices = parse_comparison(response, len(new_beam))
@@ -88,7 +88,7 @@ def sort_LLM(agent: LLM, new_beam: list[Env]) -> list[Env]:
 def sort_holes(new_beam: list[Env]) -> list[Env]:
     return sorted(new_beam, key=lambda x: len(x.holes))
 
-def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses: int, sorting_holes = True) -> Status:
+def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses: int, sorting_holes = False) -> Status:
     sort_beam = partial(sort_LLM, agent=agent)
     if sorting_holes:
         sort_beam = sort_holes
