@@ -1,13 +1,12 @@
 import hydra
 import sys
-import os
 import json
 import numpy as np
 from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
 from nlir.agent import Ghost, GPT
 from nlir.petanque import TacticEnv, TemplateEnv
-from nlir.search import naive_search, Status, beam_search
+from nlir.search import naive_search, beam_search
 from pathlib import Path
 from datetime import datetime
 from omegaconf import DictConfig
@@ -63,15 +62,15 @@ def main(cfg: DictConfig):
     if cfg.theorem and cfg.file:
         # Only prove thm from file (ignore benchmark)
         dt = datetime.now().strftime("%y%m%d-%H%M%S")
-        log_file = os.path.join(cfg.log_dir, f"{cfg.file}:{cfg.theorem}_{dt}.jsonl")
+        log_path = Path(cfg.log_dir, f"{cfg.file}:{cfg.theorem}_{dt}.jsonl").absolute()
         file_path = Path(wk_path, cfg.file)
-
         if cfg.replay:
             source_path = Path(cfg.replay)
             agent = Ghost(source_path.resolve())
         else:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
             agent = GPT(
-                log_file,
+                str(log_path),
                 cfg.agent.model_id,
                 cfg.agent.temperature,
             )
@@ -96,9 +95,9 @@ def main(cfg: DictConfig):
         for file_path, thm in theorems[: cfg.num_theorems]:
             print(f"\n\nTrying to prove {thm} from {file_path.stem}")
             env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
-            log_file = os.path.join(log_dir, f"{file_path.stem}:{thm}.jsonl")
+            log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
             agent = GPT(
-                log_file,
+                str(log_path),
                 cfg.agent.model_id,
                 cfg.agent.temperature,
             )
