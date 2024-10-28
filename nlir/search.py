@@ -1,4 +1,4 @@
-from .petanque import Env
+from .petanque import Env, TemplateEnv
 from .agent import LLM
 from dataclasses import dataclass
 from typing import List
@@ -7,6 +7,8 @@ from typing import Iterable
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .prompts import comparison_prompts
 from functools import partial
+from ast import literal_eval
+
 
 @dataclass
 class Status:
@@ -19,9 +21,9 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
     response = agent.response(env.prompt)  # Initial step
     for step in range(max_steps):
         env.exec(response)
-        print(env.proof)
+        proof = " ".join(env.proof)
+        print(f"\nNaive search, step {step}:\n{proof}")
         if env.proof_finished:
-            proof = " ".join(env.proof)
             if env.check_proof():
                 agent.log({"role": "user", "content": f"Final Proof: {proof}"})
                 return Status(step, True, proof)
@@ -42,7 +44,9 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
     raise RuntimeError("Unreachable code.")
 
 
-def create_comparison_prompt(list_env: list[Env]) -> Iterable[ChatCompletionMessageParam]:
+def create_comparison_prompt(
+    list_env: list[Env],
+) -> Iterable[ChatCompletionMessageParam]:
     """
     Build the comparison prompt from the list of environments.
     """
@@ -50,19 +54,32 @@ def create_comparison_prompt(list_env: list[Env]) -> Iterable[ChatCompletionMess
     intro = comparison_prompts.user_prompt.format(
         theorem_code=list_env[0].thm_code,
     )
-    attempts = "\n\n".join([f"Here is the {i}th attempt:\n\n{env.prompt_for_comparison}" 
-                                 for i, env in enumerate(list_env)])
-    content = "\n\n".join([intro, attempts])    
+    attempts = "\n\n".join(
+        [
+            f"Here is the {i}th attempt:\n\n{env.prompt_for_comparison}"
+            for i, env in enumerate(list_env)
+        ]
+    )
+    content = "\n\n".join([intro, attempts])
     return [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": content},
     ]
 
 
-def parse_comparison(message: ChatCompletionMessage, expanded_beam_size: int) -> List[int]:
-    try:
-        parsed = re.match(r'.*(\[\s*(\d+\s*(,\s*\d+\s*)*)?\]).*', message.content, re.DOTALL)
-        if parsed is None or len(parsed) < 2:
+def parse_comparison(
+    message: ChatCompletionMessage, expanded_beam_size: int
+) -> List[int]:
+    if message.content:
+        match = re.match(
+            r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", message.content, re.DOTALL
+        )
+        if match:
+            try:
+                return literal_eval(match[1])
+            except ValueError:
+                pass
+        else:
             # model didn't format the list properly, try alternative way of parsing
             # simply get all numbers followed by a comma, end of string or newline
             # TBC
@@ -70,14 +87,13 @@ def parse_comparison(message: ChatCompletionMessage, expanded_beam_size: int) ->
                 to_parse = message.content.split("Response")[-1]
             else:
                 to_parse = message.content
-            parsed = re.findall(r'([0-9]+)(,|$|\n)', to_parse, re.DOTALL)
-            parsed = [int(el[0]) for el in parsed]
-            parsed = parsed[-expanded_beam_size:]  # remove potentially matched from reasoning blabla
-        else:
-            parsed = eval(parsed[1])
-    except:
-        parsed = list(range(expanded_beam_size))
-    return parsed
+            match = re.findall(r"([0-9]+)(,|$|\n)", to_parse, re.DOTALL)
+            parsed = [int(el[0]) for el in match]
+            return parsed[
+                -expanded_beam_size:
+            ]  # remove potentially matched from reasoning blabla
+    return list(range(expanded_beam_size))
+
 
 def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
     comparison_prompt = create_comparison_prompt(new_beam)
@@ -85,15 +101,25 @@ def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
     perm_indices = parse_comparison(response, len(new_beam))
     return [new_beam[i] for i in perm_indices]
 
-def sort_holes(new_beam: list[Env]) -> list[Env]:
+
+def sort_holes(new_beam: list[TemplateEnv]) -> list[TemplateEnv]:
     return sorted(new_beam, key=lambda x: len(x.holes))
 
-def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses: int, sorting_holes = False) -> Status:
+
+def beam_search(
+    agent: LLM,
+    env: Env,
+    max_steps: int,
+    beam_size: int,
+    n_reponses: int,
+    sorting_holes=False,
+) -> Status:
     sort_beam = partial(sort_LLM, agent=agent)
     if sorting_holes:
         sort_beam = sort_holes
     beam = [env]
     for step in range(max_steps):
+        print(f"\nNaive search, step {step}:\n")
         # expand bean
         new_beam = []
         for env in beam:
@@ -101,9 +127,9 @@ def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses
             for response in responses:
                 env_copy = env.deepcopy()
                 env_copy.exec(response)
-                print(env_copy.proof)
+                proof = " ".join(env_copy.proof)
+                print(proof)
                 if env_copy.proof_finished:
-                    proof = " ".join(env_copy.proof)
                     if env_copy.check_proof():
                         agent.log({"role": "user", "content": f"Final Proof: {proof}"})
                         return Status(step, True, proof)
@@ -112,15 +138,18 @@ def beam_search(agent: LLM, env: Env, max_steps: int, beam_size: int, n_reponses
                         # prompt is too big, env will not be added to the beam
                         continue
                     new_beam.append(env_copy)
-        
-        if step < max_steps-1:
-            if new_beam:
+
+        if new_beam:
             # sort new_beam
-                beam = sort_beam(new_beam)
-                beam = beam[:beam_size]
-            else:
-                raise RuntimeError("Empty beam.")
+            beam = sort_beam(new_beam)
+            beam = beam[:beam_size]
         else:
             proof = " ".join(beam[0].proof)
-            agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
-            return Status(max_steps, False, proof)
+            agent.log(
+                {"role": "user", "content": f"Failed Proof (empty beam): {proof}"}
+            )
+            return Status(step, False, proof)
+
+    proof = " ".join(beam[0].proof)
+    agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
+    return Status(max_steps, False, proof)
