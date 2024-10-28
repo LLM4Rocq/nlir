@@ -90,9 +90,9 @@ def main(cfg: DictConfig):
 
         results = {"names": [], "success": [], "steps": []}
         res_path = Path(log_dir, "eval_results.json")
-        theorems = check_benchmark(pet, wk_path, cfg)
+        theorems = check_benchmark(pet, wk_path, cfg)[: cfg.num_theorems]
 
-        for file_path, thm in theorems[: cfg.num_theorems]:
+        for file_path, thm in theorems:
             print(f"\n\nTrying to prove {thm} from {file_path.stem}")
             env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
             log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
