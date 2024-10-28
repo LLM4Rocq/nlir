@@ -80,6 +80,7 @@ class GPT(LLM):
     def multi_responses(
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
+        list(map(self.log, messages))
         resp = self.client.chat.completions.create(
             model=self.model_id, messages=messages, temperature=self.temperature, n=n
         )
