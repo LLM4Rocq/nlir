@@ -9,6 +9,7 @@ from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .prompts import tactic_prompts, template_prompts
 import copy
 
+
 def pp_goal(g: Goal) -> str:
     """
     Pretty print one goal.
@@ -147,12 +148,19 @@ class Env(ABC):
             return True
         except PetanqueError:
             return False
-    
+
     def deepcopy(self):
-        new = self.__class__(self.pet, self.workspace, self.file, self.thm, self.context)
+        new = self.__class__(
+            self.pet, self.workspace, self.file, self.thm, self.context
+        )
         new.proof = copy.deepcopy(self.proof)
         new.n_interactions = copy.deepcopy(self.n_interactions)
         return new
+
+    @property
+    @abstractmethod
+    def prompt_for_comparison(self) -> str:
+        pass
 
 
 class TacticEnv(Env):
@@ -243,6 +251,7 @@ class TacticEnv(Env):
             n_interactions=self.n_interactions,
             previous_unsuccessful="\n".join(self.previous_unsuccessful),
         )
+
 
 @dataclass
 class Template:
@@ -369,7 +378,7 @@ class TemplateEnv(Env):
         if self.holes:
             return False
         return True
-        #return self.check_proof() # this is done in the search
+        # return self.check_proof() # this is done in the search
         # if there is no more holes and the proof is not correct,
         # we reached a dead end -> failed proof
 
@@ -410,7 +419,7 @@ class TemplateEnv(Env):
             return [{"role": "user", "content": content}]
         else:
             raise RuntimeError("No more holes")
-        
+
     @property
     def prompt_for_comparison(self) -> str:
         """

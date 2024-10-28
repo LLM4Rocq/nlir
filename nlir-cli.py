@@ -12,6 +12,7 @@ from datetime import datetime
 from omegaconf import DictConfig
 from functools import partial
 
+
 def check_benchmark(
     pet: Pytanque, wk_path: Path, cfg: DictConfig
 ) -> list[tuple[Path, str]]:
@@ -55,7 +56,11 @@ def main(cfg: DictConfig):
         case "naive":
             search = naive_search
         case "beam":
-            search = partial(beam_search, beam_size=cfg.search.beam_size, n_reponses=cfg.search.n_responses)
+            search = partial(
+                beam_search,
+                beam_size=cfg.search.beam_size,
+                n_reponses=cfg.search.n_responses,
+            )
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
@@ -75,7 +80,9 @@ def main(cfg: DictConfig):
                 cfg.agent.temperature,
             )
 
-        env = env_cls(pet, str(wk_path), str(file_path), cfg.theorem, cfg.petanque.context)
+        env = env_cls(
+            pet, str(wk_path), str(file_path), cfg.theorem, cfg.petanque.context
+        )
 
         print(f"Try to prove {cfg.theorem} from {cfg.file}")
         status = search(agent, env, cfg.search.max_steps)
