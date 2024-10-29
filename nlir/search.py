@@ -68,8 +68,7 @@ def create_comparison_prompt(
 
 
 def parse_comparison(
-    message: ChatCompletionMessage, expanded_beam_size: int
-) -> List[int]:
+    message: ChatCompletionMessage) -> List[int]:
     if message.content:
         match = re.match(
             r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", message.content, re.DOTALL
@@ -79,26 +78,25 @@ def parse_comparison(
                 return literal_eval(match[1])
             except ValueError:
                 pass
+        # model didn't format the list properly, try alternative way of parsing
+        # simply get all numbers followed by a comma, end of string or newline
+        # TBC
+        if "Response" in message.content:
+            to_parse = message.content.split("Response")[-1]
         else:
-            # model didn't format the list properly, try alternative way of parsing
-            # simply get all numbers followed by a comma, end of string or newline
-            # TBC
-            if "Response" in message.content:
-                to_parse = message.content.split("Response")[-1]
-            else:
-                to_parse = message.content
-            match = re.findall(r"([0-9]+)(,|$|\n)", to_parse, re.DOTALL)
-            parsed = [int(el[0]) for el in match]
-            return parsed[
-                -expanded_beam_size:
-            ]  # remove potentially matched from reasoning blabla
-    return list(range(expanded_beam_size))
+            to_parse = message.content
+        match = re.findall(r"([0-9]+)(,|$|\n)", to_parse, re.DOTALL)
+        parsed = [int(el[0]) for el in match]
+        return parsed  
+    return []
 
 
-def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
+def sort_LLM(new_beam: list[Env], agent: LLM, beam_size: int) -> list[Env]:
     comparison_prompt = create_comparison_prompt(new_beam)
     response = agent.response(comparison_prompt)
-    perm_indices = parse_comparison(response, len(new_beam))
+    perm_indices = parse_comparison(response)
+    if len(perm_indices) < beam_size:
+        perm_indices = list(range(beam_size))
     return [new_beam[i] for i in perm_indices]
 
 
@@ -114,12 +112,12 @@ def beam_search(
     n_reponses: int,
     sorting_holes=False,
 ) -> Status:
-    sort_beam = partial(sort_LLM, agent=agent)
+    sort_beam = partial(sort_LLM, agent=agent, beam_size=beam_size)
     if sorting_holes:
         sort_beam = sort_holes
     beam = [env]
     for step in range(max_steps):
-        print(f"\nNaive search, step {step}:\n")
+        print(f"\nBeam search, step {step}:\n")
         # expand bean
         new_beam = []
         for env in beam:
