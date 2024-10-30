@@ -3,7 +3,7 @@ file: null
 theorem: null
 replay: false
 benchmark: null
-num_theorems: null
+num_theorems: 100
 log_dir: "logs"
 
 petanque:
@@ -11,18 +11,18 @@ petanque:
   port: 8765
   timeout: 10
   run_opts: null
-  context: false
+  context: true
 
 agent:
-  model_id: gpt-4o
+  model_id: gpt-4o-2024-05-13
   temperature: 1.0
 
 search:
-  kind: template #tactics 
-  mode: beam #naive
+  kind: tactics
+  mode: beam
   max_steps: 10
   beam_size: 3
-  n_responses: 2
+  n_responses: 4
 
 hydra:
   help:
@@ -44,12 +44,8 @@ hydra:
 
       ${hydra.help.footer}
 
-
-
 defaults:
   - _self_
   - benchmark: null
   - override hydra/job_logging: none
   - override hydra/hydra_logging: none
-
-

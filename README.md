@@ -81,7 +81,7 @@ To try a theorem in a different workspace:
 $ python nlir-cli.py workspace=../lf file=Induction.v theorem=add_comm
 ```
 
-## Benchmark
+## Benchmarks
 
 Benchmarks are defined in `conf/benchmark` with the following format:
 
@@ -99,8 +99,14 @@ Benchmarks are defined in `conf/benchmark` with the following format:
 
 To launch NLIR on a benchmark (e.g., `conf/benchmark/example.yaml`)
 
-```
+```bash
 $ python nlir-cli.py benchmark=example
 ```
 
 The conversation logs and the configuration will be stored in `./outputs/date/time/`
+
+You can also try one of the pre-defined benchmarks configurations, and override some parameters, e.g.:
+
+```bash
+python nlir-cli.py --config-name conf_bb search.mode=beam
+```

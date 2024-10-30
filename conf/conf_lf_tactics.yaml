@@ -1,0 +1,30 @@
+workspace: "../lf"
+num_theorems: null
+log_dir: "logs"
+file: null
+theorem: null
+replay: false
+
+petanque:
+  address: 127.0.0.1
+  port: 8765
+  timeout: 10
+  run_opts: null
+  context: false
+
+agent:
+  model_id: gpt-4o-2024-05-13
+  temperature: 1.0
+
+search:
+  kind: tactics
+  mode: beam
+  max_steps: 30
+  beam_size: 3
+  n_responses: 4
+
+defaults:
+  - _self_
+  - benchmark: logical_foundations_non_trivial
+  - override hydra/job_logging: none
+  - override hydra/hydra_logging: none

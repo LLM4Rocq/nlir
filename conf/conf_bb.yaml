@@ -1,0 +1,30 @@
+workspace: "../Coq-BB5"
+num_theorems: 28
+log_dir: "logs"
+file: null
+theorem: null
+replay: false
+
+petanque:
+  address: 127.0.0.1
+  port: 8765
+  timeout: 10
+  run_opts: null
+  context: true
+
+agent:
+  model_id: gpt-4o-2024-05-13
+  temperature: 1.0
+
+search:
+  kind: template
+  mode: beam
+  max_steps: 10
+  beam_size: 3
+  n_responses: 4
+
+defaults:
+  - _self_
+  - benchmark: bb42
+  - override hydra/job_logging: none
+  - override hydra/hydra_logging: none
