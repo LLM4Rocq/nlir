@@ -91,10 +91,11 @@ def parse_comparison(
     return []
 
 
-def sort_LLM(new_beam: list[Env], agent: LLM, beam_size: int) -> list[Env]:
+def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
     comparison_prompt = create_comparison_prompt(new_beam)
     response = agent.response(comparison_prompt)
     perm_indices = parse_comparison(response)
+    beam_size = len(new_beam)
     if len(perm_indices) < beam_size:
         perm_indices = list(range(beam_size))
     return [new_beam[i] for i in perm_indices]
@@ -112,7 +113,7 @@ def beam_search(
     n_reponses: int,
     sorting_holes=False,
 ) -> Status:
-    sort_beam = partial(sort_LLM, agent=agent, beam_size=beam_size)
+    sort_beam = partial(sort_LLM, agent=agent)
     if sorting_holes:
         sort_beam = sort_holes
     beam = [env]
