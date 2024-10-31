@@ -96,7 +96,7 @@ def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
     response = agent.response(comparison_prompt)
     perm_indices = parse_comparison(response)
     beam_size = len(new_beam)
-    if len(perm_indices) < beam_size:
+    if len(perm_indices) < beam_size or not all([i < beam_size for i in perm_indices]):
         perm_indices = list(range(beam_size))
     return [new_beam[i] for i in perm_indices]
 
