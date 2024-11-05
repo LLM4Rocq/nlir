@@ -19,7 +19,7 @@ agent:
 
 search:
   kind: tactics
-  mode: beam
+  mode: naive
   max_steps: 10
   beam_size: 3
   n_responses: 4

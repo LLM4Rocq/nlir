@@ -15,7 +15,7 @@ licence = "Apache-2.0"
 python = "^3.10"
 hydra-core = "^1.3.2"
 openai = "^1.50.2"
-pytanque = {git = "https://github.com/LLM4Coq/pytanque.git", branch = "search" }
+pytanque = {git = "https://github.com/LLM4Coq/pytanque.git"}
 numpy = "^2.1.2"
 
 

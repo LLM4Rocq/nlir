@@ -1,5 +1,13 @@
 # NLIR: Natural Language Intermediate Representation for Mechanized Theorem Proving
 
+NLIR leverage LLMs natural language reasoning ability for theorem proving with the Rocq interactive theorem prover (ITP).
+We propose two interactive proof protocols both leveraging natural language reasoning: tactic-by-tactic proof construction, and hierarchical proof templating.
+Tactic-by-tactic proof construction mimics the typical behavior of a standard Coq user: given the current goals, the agent generates one or several tactics that updates the goals and repeats this process until the proof is complete. By contrast, hierarchical proof templating tries to generate full proofs directly. 
+Failed tactics are then replaced with holes to obtain a proof template. The agent repeats the process of filling each hole until the proof is complete. 
+Our approach’s originality is that although both protocols’ inputs (goals) and outputs (tactics) are Coq code, the agent internally uses natural language as an intermediate representation to analyze the input and guide the code generation.
+We couple both protocols with standard search algorithms leveraging feedback from the ITP and using natural language to rerank proof candidates.
+
+
 ## Install
 
 To run the agent, you need to install [coq-lsp](https://github.com/ejgallego/coq-lsp) >= 0.2.0 . On Unix-like systems, this is best done using the [OPAM package manager](https://opam.ocaml.org/), then do `opam install coq-lsp`.
@@ -12,19 +20,29 @@ pip install -e .
 
 ## Getting started
 
-The default configuration can be found in `conf/config.yaml`
-To try the agent, first launch `pet-server` in a terminal
+First launch `pet-server` in a terminal
 
 ```bash
 $ pet-server
 ```
 
-Then (in another terminal)
+To communicate with the OpenAI API you need to export following environment variables (see https://platform.openai.com/ to generate the key):
+
+```bash
+export OPENAI_API_KEY="your secret key"
+export OPENAI_PROJECT="your project id"
 ```
-$ python nlir-cli.py file=foo.v theorem=foo
+
+The default configuration can be found in `conf/config.yaml`.
+You can override every field.
+E.g., to try the tactics agent without beam search on theorem `foo` defined in `examples/foo.v`:
+```
+$ python nlir-cli.py workspace=examples file=foo.v theorem=foo search.kind=tactics search.mode=naive
 ```
 
 You should see each iteration of the proof in stdout.
+
+## Configurations
 
 We use [hydra](https://hydra.cc/docs/intro/) to manage the configurations.
 
@@ -42,46 +60,43 @@ Config files should be in the `conf` directory.
 == Config ==
 Override anything in the config (foo.bar=value)
 
-workspace: examples
-file: null
-theorem: null
-replay: false
-benchmark: null
-num_theorems: null
+workspace: examples # Path to the coq project
+file: null # file.v to prove a single theorem
+theorem: null # Theorem to prove a single theorem
+replay: false # log file to replay the conversation
+benchmark: null # benchmark suite
+num_theorems: null # stop after n theorem in the benchmark
+log_dir: "logs" # directory to store the log files
 petanque:
-  address: 127.0.0.1
-  port: 8765
-  timeout: 10
-  run_opts: null
-  context: false
+  address: 127.0.0.1 # Address of the pet-server
+  port: 8765 # port of the pet-server
+  timeout: 10 # timeout for each tactic
+  run_opts: null # additional options for runtac
+  context: false # Add the beginning of the file without proofs in the prompt
 agent:
-  model_id: gpt-4o
+  model_id: gpt-4o # LLM id
   temperature: 1.0
 search:
-  kind: template
-  mode: naive
-  max_steps: 10
+  kind: template # tactics or template
+  mode: naive # naive or beam
+  max_steps: 10 # Number of steps for the search
+  beam_size: 3 # only for beam search
+  n_responses: 4 # only for beam search
 
 
 Powered by Hydra (https://hydra.cc)
 Use --hydra-help to view Hydra specific help
 ```
 
-## Examples
+### Replay
 
-To replay the proof of `foo.v:foo` from a conversation log:
-
-```
-$ python nlir-cli.py file=foo.v theorem=foo ++replay=foo_logs.jsonl
-```
-
-To try a theorem in a different workspace:
+To replay the proof of `foo.v:foo` from a conversation log using the default `config.yaml`.
 
 ```
-$ python nlir-cli.py workspace=../lf file=Induction.v theorem=add_comm
+$ python nlir-cli.py file=foo.v theorem=foo ++replay=logs/foo.v:foo_241105-093854.jsonl
 ```
 
-## Benchmarks
+### Benchmarks
 
 Benchmarks are defined in `conf/benchmark` with the following format:
 
@@ -97,7 +112,7 @@ Benchmarks are defined in `conf/benchmark` with the following format:
     - thm23
 ```
 
-To launch NLIR on a benchmark (e.g., `conf/benchmark/example.yaml`)
+To launch NLIR with the default configuration `config.yaml` on a benchmark (e.g., `conf/benchmark/example.yaml`)
 
 ```bash
 $ python nlir-cli.py benchmark=example
@@ -105,8 +120,12 @@ $ python nlir-cli.py benchmark=example
 
 The conversation logs and the configuration will be stored in `./outputs/date/time/`
 
-You can also try one of the pre-defined benchmarks configurations, and override some parameters, e.g.:
+### Using custom config files
+
+You can also try one of the pre-defined benchmarks configurations files (or write your own), and override some parameters, e.g.:
 
 ```bash
-python nlir-cli.py --config-name conf_bb search.mode=beam
+$ python nlir-cli.py --config-name conf_bb search.mode=beam
 ```
+
+To run these benchmarks you need to download the [Logical Foundations](https://softwarefoundations.cis.upenn.edu/lf-current/index.html) and [Coq-BB5](https://github.com/ccz181078/Coq-BB5) in the parent directory (or change the `workspace` field in the config files).
