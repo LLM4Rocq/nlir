@@ -9,6 +9,7 @@ authors = [
   "Laetitia Teodorescu <laetitia@adaptive-ml.com>",
 ]
 readme = "README.md"
+licence = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.10"
