@@ -78,6 +78,7 @@ def main(cfg: DictConfig):
                 str(log_path),
                 cfg.agent.model_id,
                 cfg.agent.temperature,
+                cfg.agent.local,
             )
 
         env = env_cls(
@@ -107,6 +108,7 @@ def main(cfg: DictConfig):
                 str(log_path),
                 cfg.agent.model_id,
                 cfg.agent.temperature,
+                cfg.agent.local,
             )
             status = search(agent, env, cfg.search.max_steps)
             results["names"].append(f"{env.file}:{env.thm}")
