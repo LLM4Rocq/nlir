@@ -13,10 +13,6 @@ petanque:
   run_opts: null
   context: true
 
-agent:
-  model_id: gpt-4o-2024-05-13
-  temperature: 1.0
-
 search:
   kind: tactics
   mode: naive
@@ -46,6 +42,7 @@ hydra:
 
 defaults:
   - _self_
+  - agent: gpt
   - benchmark: null
   - override hydra/job_logging: none
   - override hydra/hydra_logging: none

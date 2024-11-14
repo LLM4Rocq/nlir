@@ -53,15 +53,22 @@ class GPT(LLM):
         log_file: str,
         model_id: str,
         temperature: float,
+        local: bool,
     ):
 
         super().__init__(log_file)
         self.model_id = model_id
         self.temperature = temperature
-        self.client = oai.OpenAI(
-            project=os.environ["OPENAI_PROJECT"],
-            api_key=os.environ["OPENAI_API_KEY"],
-        )
+        if local:
+            self.client = oai.OpenAI(
+                api_key="EMPTY",
+                base_url="http://localhost:8000/v1",
+            )
+        else:
+            self.client = oai.OpenAI(
+                project=os.environ["OPENAI_PROJECT"],
+                api_key=os.environ["OPENAI_API_KEY"],
+            )
 
     def response(
         self, messages: Iterable[ChatCompletionMessageParam]

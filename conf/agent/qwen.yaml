@@ -1,0 +1,4 @@
+#model_id: "Qwen/Qwen2.5-1.5B-Instruct"
+model_id: "Qwen/Qwen2-7B-Instruct"
+temperature: 1.0
+local: true
