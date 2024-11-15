@@ -340,6 +340,7 @@ class TemplateEnv(Env):
                 return fix(next_state, tactics[1:], False)
 
             except PetanqueError as err:
+                #print("xxxx", err.message)
                 if drop:  # still invalid, drop tactic.
                     return fix(state, tactics[1:], True)
                 if m := re.match(
