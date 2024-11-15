@@ -80,9 +80,12 @@ class GPT(LLM):
                 self.chat_complete = self.client.chat.completions.create
             elif self.cfg_agent.provider == "mistral":
                 from mistralai import Mistral
-                self.client = Mistral(api_key=os.environ["MISTRAL_API_KEY"]
-                )
-                self.chat_complete = self.client.chat.complete 
+                if self.cfg_agent.model_id.startswith("codestral"):
+                    self.client = Mistral(api_key=os.environ["CODESTRAL_API_KEY"], server_url='https://codestral.mistral.ai')
+                else:
+                    self.client = Mistral(api_key=os.environ["MISTRAL_API_KEY"]
+                    )
+                self.chat_complete = self.client.chat.complete
             else:
                 raise RuntimeError("Unknown provider")
 
@@ -97,6 +100,8 @@ class GPT(LLM):
             .choices[0]
             .message
         )
+        if self.cfg_agent.provider == "mistral":
+            resp = ChatCompletionMessage(**resp.dict())    
         self.log(resp)
         return resp
 
@@ -107,9 +112,14 @@ class GPT(LLM):
         resp = self.chat_complete(
             model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature, n=n
         )
-        for c in resp.choices:
-            self.log(c.message)
-        return [c.message for c in resp.choices]
+        if self.cfg_agent.provider == "mistral":
+            for c in resp.choices:
+                self.log(c.message.dict())
+            return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
+        else:
+            for c in resp.choices:
+                self.log(c.message)
+            return [c.message for c in resp.choices]
 
 
 class Ghost(LLM):
