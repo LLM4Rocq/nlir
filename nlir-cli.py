@@ -76,9 +76,7 @@ def main(cfg: DictConfig):
             log_path.parent.mkdir(parents=True, exist_ok=True)
             agent = GPT(
                 str(log_path),
-                cfg.agent.model_id,
-                cfg.agent.temperature,
-                cfg.agent.local,
+                cfg.agent,
             )
 
         env = env_cls(
@@ -106,9 +104,7 @@ def main(cfg: DictConfig):
             log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
             agent = GPT(
                 str(log_path),
-                cfg.agent.model_id,
-                cfg.agent.temperature,
-                cfg.agent.local,
+                cfg.agent,
             )
             status = search(agent, env, cfg.search.max_steps)
             results["names"].append(f"{env.file}:{env.thm}")

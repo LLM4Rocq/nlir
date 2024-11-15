@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from pathlib import Path
+from omegaconf import DictConfig
 
 
 class LLM(ABC):
@@ -13,8 +14,9 @@ class LLM(ABC):
     `response` and `multi_responses` are used in `search`.
     """
 
-    def __init__(self, log_file: str):
+    def __init__(self, log_file: str, cfg_agent: DictConfig):
         self.log_file = log_file
+        self.cfg_agent = cfg_agent
 
     def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
         with open(self.log_file, "a") as file:
@@ -51,24 +53,34 @@ class GPT(LLM):
     def __init__(
         self,
         log_file: str,
-        model_id: str,
-        temperature: float,
-        local: bool,
+        cfg_agent: DictConfig,
     ):
 
-        super().__init__(log_file)
-        self.model_id = model_id
-        self.temperature = temperature
-        if local:
+        super().__init__(log_file, cfg_agent)
+        #self.model_id = model_id
+        #self.temperature = temperature
+        if self.cfg_agent.local:
             self.client = oai.OpenAI(
                 api_key="EMPTY",
                 base_url="http://localhost:8000/v1",
             )
         else:
-            self.client = oai.OpenAI(
-                project=os.environ["OPENAI_PROJECT"],
-                api_key=os.environ["OPENAI_API_KEY"],
-            )
+            if self.cfg_agent.provider == "openai":
+                self.client = oai.OpenAI(
+                    project=os.environ["OPENAI_PROJECT"],
+                    api_key=os.environ["OPENAI_API_KEY"],
+                )
+            elif self.cfg_agent.provider == "deepseek": 
+                self.client = oai.OpenAI(
+                    api_key=os.environ["DEEPSEEK_API_KEY"], 
+                    base_url="https://api.deepseek.com"
+                )
+            elif self.cfg_agent.provider == "mistral":
+                from mistralai import Mistral
+                self.client = Mistral(api_key=os.environ["MISTRAL_API_KEY"]
+                )
+            else:
+                raise RuntimeError("Unknown provider")
 
     def response(
         self, messages: Iterable[ChatCompletionMessageParam]
@@ -76,7 +88,7 @@ class GPT(LLM):
         list(map(self.log, messages))
         resp = (
             self.client.chat.completions.create(
-                model=self.model_id, messages=messages, temperature=self.temperature
+                model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature
             )
             .choices[0]
             .message
@@ -89,7 +101,7 @@ class GPT(LLM):
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
         resp = self.client.chat.completions.create(
-            model=self.model_id, messages=messages, temperature=self.temperature, n=n
+            model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature, n=n
         )
         for c in resp.choices:
             self.log(c.message)
@@ -104,7 +116,7 @@ class Ghost(LLM):
 
     def __init__(self, source_file):
         source = Path(source_file)
-        super().__init__(os.path.join(source.parent, f"{source.stem}_replay.jsonl"))
+        super().__init__(os.path.join(source.parent, f"{source.stem}_replay.jsonl"), cfg_agent=None)
         logs = []
         with open(source_file, "r") as file:
             for line in file:
