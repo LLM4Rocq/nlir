@@ -64,21 +64,25 @@ class GPT(LLM):
                 api_key="EMPTY",
                 base_url="http://localhost:8000/v1",
             )
+            self.chat_complete = self.client.chat.completions.create
         else:
             if self.cfg_agent.provider == "openai":
                 self.client = oai.OpenAI(
                     project=os.environ["OPENAI_PROJECT"],
                     api_key=os.environ["OPENAI_API_KEY"],
                 )
+                self.chat_complete = self.client.chat.completions.create
             elif self.cfg_agent.provider == "deepseek": 
                 self.client = oai.OpenAI(
                     api_key=os.environ["DEEPSEEK_API_KEY"], 
                     base_url="https://api.deepseek.com"
                 )
+                self.chat_complete = self.client.chat.completions.create
             elif self.cfg_agent.provider == "mistral":
                 from mistralai import Mistral
                 self.client = Mistral(api_key=os.environ["MISTRAL_API_KEY"]
                 )
+                self.chat_complete = self.client.chat.complete 
             else:
                 raise RuntimeError("Unknown provider")
 
@@ -87,7 +91,7 @@ class GPT(LLM):
     ) -> ChatCompletionMessage:
         list(map(self.log, messages))
         resp = (
-            self.client.chat.completions.create(
+            self.chat_complete(
                 model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature
             )
             .choices[0]
@@ -100,7 +104,7 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        resp = self.client.chat.completions.create(
+        resp = self.chat_complete(
             model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature, n=n
         )
         for c in resp.choices:
