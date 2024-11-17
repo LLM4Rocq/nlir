@@ -6,7 +6,7 @@ from typing import Iterable
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from pathlib import Path
 from omegaconf import DictConfig
-
+import concurrent.futures
 
 class LLM(ABC):
     """
@@ -109,13 +109,24 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        resp = self.chat_complete(
+        if self.cfg_agent.provider == "deepseek":
+            with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+                these_futures = [executor.submit(self.response, messages) for _ in range(n)]
+                concurrent.futures.wait(these_futures)
+
+                resp = [future.result() for future in these_futures]
+            #print(resp)
+
+        else:
+            resp = self.chat_complete(
             model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature, n=n
         )
         if self.cfg_agent.provider == "mistral":
             for c in resp.choices:
                 self.log(c.message.dict())
             return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
+        elif self.cfg_agent.provider == "deepseek":
+            return resp
         else:
             for c in resp.choices:
                 self.log(c.message)
