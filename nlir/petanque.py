@@ -353,7 +353,7 @@ class TemplateEnv(Env):
                 ):  # refocus on correct bullet
                     return fix(state, [m.group("bullet")] + tactics, False)
                 if re.match(
-                    r"Coq: \[Focus\] Wrong bullet (?:\++|\-+|\*+): Current bullet (?:\++|\-+|\*+) is    not finished.",
+                    r"Coq: \[Focus\] Wrong bullet (?:\++|\-+|\*+): Current bullet (?:\++|\-+|\*+) is not finished.",
                     err.message,
                 ):  # close previous subgoal and retry.
                     return fix(state, ["admit."] + tactics, False)
@@ -371,7 +371,15 @@ class TemplateEnv(Env):
                     return fix(state, ["admit."] + tactics[1:], True)
 
         tactics = split_proof(proof, add_delimiter=True)
-        return fix(state, tactics, False)
+        try:
+            return fix(state, tactics, False)
+        except RecursionError:
+            # Proof requires too many fixes (maybe it generates too many subgoals?)
+            # Return a template with a single hole.
+            h = Template(state)
+            template.proof = [h]
+            holes = [h]
+            return template, holes
 
     @property
     def proof_finished(self) -> bool:
