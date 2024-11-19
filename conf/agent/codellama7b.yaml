@@ -1,0 +1,4 @@
+model_id: "codellama/CodeLlama-7b-hf"
+temperature: 1.0
+local: true
+provider: huggingface
