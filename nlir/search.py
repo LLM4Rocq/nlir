@@ -170,7 +170,7 @@ def beam_search(
             )
             return Status(step, False, proof)
 
-    beam = sort_holes(beam)
+    #beam = sort_holes(beam)
     proof = " ".join(beam[0].proof)
     agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
     return Status(max_steps, False, proof)
