@@ -154,8 +154,11 @@ def beam_search(
                     proof = " ".join(new_beam[0].proof)
                     return Status(step, True, proof)
                 else:
-                    print(f"adding {beam_size- len(new_beam)} new envs to beam")
-                    new_beam.extend([env.deepcopy() for _ in range(beam_size - len(new_beam))])
+                    num_add = beam_size - len(new_beam)
+                    print(f"adding {num_add} new envs to beam")
+                    beam = new_beam
+                    beam.extend([env.deepcopy() for _ in range(num_add)])
+
             else: 
                 # sort new_beam
                 beam = sort_beam(new_beam)

@@ -73,6 +73,12 @@ class GPT(LLM):
                     api_key=os.environ["OPENAI_API_KEY"],
                 )
                 self.chat_complete = self.client.chat.completions.create
+            elif self.cfg_agent.provider == "xai":
+                self.client = oai.OpenAI(
+                    api_key=os.environ["XAI_API_KEY"], 
+                    base_url="https://api.x.ai/v1"
+                )
+                self.chat_complete = self.client.chat.completions.create
             elif self.cfg_agent.provider == "deepseek": 
                 self.client = oai.OpenAI(
                     api_key=os.environ["DEEPSEEK_API_KEY"], 
