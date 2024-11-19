@@ -7,6 +7,7 @@ from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from pathlib import Path
 from omegaconf import DictConfig
 import concurrent.futures
+import weave
 
 class LLM(ABC):
     """
@@ -89,6 +90,7 @@ class GPT(LLM):
             else:
                 raise RuntimeError("Unknown provider")
 
+    @weave.op()
     def response(
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
@@ -105,6 +107,7 @@ class GPT(LLM):
         self.log(resp)
         return resp
 
+    @weave.op()
     def multi_responses(
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
@@ -113,9 +116,7 @@ class GPT(LLM):
             with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
                 these_futures = [executor.submit(self.response, messages) for _ in range(n)]
                 concurrent.futures.wait(these_futures)
-
                 resp = [future.result() for future in these_futures]
-            #print(resp)
 
         else:
             resp = self.chat_complete(

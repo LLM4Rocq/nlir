@@ -1,4 +1,5 @@
 import hydra
+import weave
 import sys
 import json
 import numpy as np
@@ -115,8 +116,8 @@ def main(cfg: DictConfig):
 
         print(f"\n\n--- Summary ---")
         print(f"Theorems: {len(theorems)}")
-        print(f"Successes: {np.sum(results["success"])}")
-        print(f"Average number of steps: {np.mean(results["steps"])}")
+        print(f"Successes: {np.sum(results['success'])}")
+        print(f"Average number of steps: {np.mean(results['steps'])}")
         print("---\n\n")
         sys.exit(0)
 
@@ -126,4 +127,5 @@ def main(cfg: DictConfig):
 
 
 if __name__ == "__main__":
+    #weave.init('test')
     main()
