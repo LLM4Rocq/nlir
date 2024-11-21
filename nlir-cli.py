@@ -70,6 +70,7 @@ def main(cfg: DictConfig):
 
     if cfg.theorem and cfg.file:
         # Only prove thm from file (ignore benchmark)
+        #weave.init('test')
         dt = datetime.now().strftime("%y%m%d-%H%M%S")
         log_path = Path(cfg.log_dir, f"{cfg.file}:{cfg.theorem}_{dt}.jsonl").absolute()
         file_path = Path(wk_path, cfg.file)
@@ -96,6 +97,10 @@ def main(cfg: DictConfig):
 
     elif cfg.benchmark:
         # Try the full benchmark
+        if cfg.weave:
+            model_id = cfg.agent.model_id
+            name_expe = f"{model_id.split('/')[-1]}:{cfg.benchmark[0].file}"
+            weave.init(name_expe)
         log_dir = HydraConfig.get().runtime.output_dir
 
         results = {"names": [], "success": [], "steps": []}
@@ -110,7 +115,8 @@ def main(cfg: DictConfig):
                 str(log_path),
                 cfg.agent,
             )
-            status = search(agent, env, cfg.search.max_steps)
+            with weave.attributes({"file": file_path.stem, "thm": thm}):
+                status = search(agent, env, cfg.search.max_steps)
             results["names"].append(f"{env.file}:{env.thm}")
             results["success"].append(status.success)
             results["steps"].append(status.steps)
@@ -130,5 +136,4 @@ def main(cfg: DictConfig):
 
 
 if __name__ == "__main__":
-    #weave.init('test')
     main()

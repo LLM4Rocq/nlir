@@ -69,7 +69,7 @@ class GPT(LLM):
             else:
                 self.client = oai.OpenAI(
                     api_key="EMPTY",
-                    base_url='http://localhost:8000/v1',
+                    base_url='http://gpu012:8000/v1',
                 )
             self.chat_complete = self.client.chat.completions.create
         else:
