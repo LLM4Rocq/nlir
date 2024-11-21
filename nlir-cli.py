@@ -19,16 +19,19 @@ def check_benchmark(
 ) -> list[tuple[Path, str]]:
     errors = []
     theorems = []
+    counter = 0
     for thms in cfg.benchmark:
         file_path = Path(wk_path, thms.file).absolute()
         for thm in thms.theorems:
-            try:
-                pet.start(str(file_path), thm)
-                theorems.append((file_path, thm))
-            except PetanqueError as err:
-                errors.append(f"- File {thms.file} {thm}: {err.message}")
+            if counter in range(cfg.start_theorem,cfg.end_theorem):
+                try:
+                    pet.start(str(file_path), thm)
+                    theorems.append((file_path, thm))
+                except PetanqueError as err:
+                    errors.append(f"- File {thms.file} {thm}: {err.message}")
+            counter += 1
     if not errors:
-        print(f"Benchmarking {len(theorems)} theorems in {len(cfg.benchmark)} files")
+        print(f"Benchmarking {len(theorems)} theorems starting from {cfg.start_theorem} in {len(cfg.benchmark)} files")
     else:
         print(f"Config contains the following errors:", file=sys.stderr)
         print("\n".join(errors), file=sys.stderr)
@@ -96,8 +99,8 @@ def main(cfg: DictConfig):
         log_dir = HydraConfig.get().runtime.output_dir
 
         results = {"names": [], "success": [], "steps": []}
-        res_path = Path(log_dir, "eval_results.json")
-        theorems = check_benchmark(pet, wk_path, cfg)[: cfg.num_theorems]
+        theorems = check_benchmark(pet, wk_path, cfg)
+        res_path = Path(log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}.json")
 
         for file_path, thm in theorems:
             print(f"\n\nTrying to prove {thm} from {file_path.stem}")

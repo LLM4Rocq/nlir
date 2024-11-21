@@ -1,5 +1,6 @@
 workspace: "../Coq-BB5"
-num_theorems: 28
+start_theorem: 0
+end_theorem: 10
 log_dir: "logs"
 file: null
 theorem: null

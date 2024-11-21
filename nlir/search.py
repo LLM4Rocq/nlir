@@ -149,7 +149,7 @@ def beam_search(
         # expand bean
         new_beam = expand_beam(beam, agent, n_reponses)
         if new_beam:
-            if len(new_beam) < beam_size:
+            if len(new_beam) <= beam_size:
                 if new_beam[0].proof_finished:
                     proof = " ".join(new_beam[0].proof)
                     return Status(step, True, proof)
