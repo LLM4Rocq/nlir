@@ -93,6 +93,8 @@ def get_context(doc: str, thm: str) -> str:
     """
     pattern = r"Proof\.(.*?)(Qed|Admitted|Abort)\."
     cleaned_text = re.sub(pattern, "", doc, flags=re.DOTALL)
+    # Replace multiple newlines with a single newline
+    cleaned_text = re.sub(r'\n+', '\n', cleaned_text)
     lines = cleaned_text.split("\n")
     for i, l in enumerate(lines):
         if thm in l:

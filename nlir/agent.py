@@ -61,10 +61,16 @@ class GPT(LLM):
         #self.model_id = model_id
         #self.temperature = temperature
         if self.cfg_agent.local:
-            self.client = oai.OpenAI(
-                api_key="EMPTY",
-                base_url='http://localhost:11434/v1', #"http://localhost:8000/v1",
-            )
+            if self.cfg_agent.provider == "ollama":
+                self.client = oai.OpenAI(
+                    api_key="EMPTY",
+                    base_url='http://localhost:11434/v1', 
+                )
+            else:
+                self.client = oai.OpenAI(
+                    api_key="EMPTY",
+                    base_url='http://localhost:8000/v1',
+                )
             self.chat_complete = self.client.chat.completions.create
         else:
             if self.cfg_agent.provider == "openai":
