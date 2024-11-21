@@ -1,10 +1,11 @@
 workspace: "../Coq-BB5"
 start_theorem: 0
-end_theorem: 10
+end_theorem: 100
 log_dir: "logs"
 file: null
 theorem: null
 replay: false
+weave: true
 
 petanque:
   address: 127.0.0.1

@@ -130,7 +130,10 @@ def expand_beam(
             new_beam.append(env_copy)
     return new_beam
 
-#@weave.op()
+def bs_name(call):
+    return f"BS-{call.attributes['thm']}-{call.attributes['file']}"
+
+@weave.op(call_display_name=bs_name)
 def beam_search(
     agent: LLM,
     env: Env,

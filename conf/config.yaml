@@ -5,6 +5,7 @@ replay: false
 benchmark: null
 num_theorems: 100
 log_dir: "logs"
+weave: false
 
 petanque:
   address: 127.0.0.1
