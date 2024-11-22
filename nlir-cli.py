@@ -70,7 +70,6 @@ def main(cfg: DictConfig):
 
     if cfg.theorem and cfg.file:
         # Only prove thm from file (ignore benchmark)
-        #weave.init('test')
         dt = datetime.now().strftime("%y%m%d-%H%M%S")
         log_path = Path(cfg.log_dir, f"{cfg.file}:{cfg.theorem}_{dt}.jsonl").absolute()
         file_path = Path(wk_path, cfg.file)
