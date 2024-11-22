@@ -389,10 +389,7 @@ class TemplateEnv(Env):
     def proof_finished(self) -> bool:
         if self.holes:
             return False
-        return True
-        # return self.check_proof() # this is done in the search
-        # if there is no more holes and the proof is not correct,
-        # we reached a dead end -> failed proof
+        return self.check_proof() 
 
     def exec(self, message: ChatCompletionMessage):
         """

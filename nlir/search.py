@@ -121,12 +121,15 @@ def expand_beam(
                     agent.log({"role": "user", "content": f"Final Proof: {proof}"})
                     return [env_copy]
             else:
-                if len(str(env_copy.prompt)) > 100000:
-                    # prompt is too big, env will not be added to the beam
-                    continue
-                elif env_copy.proof in [e.proof for e in new_beam]:
-                    # avoid adding duplicate proofs
-                    continue
+                try:
+                    if len(str(env_copy.prompt)) > 100000:
+                        # prompt is too big, env will not be added to the beam
+                        continue
+                    elif env_copy.proof in [e.proof for e in new_beam]:
+                        # avoid adding duplicate proofs
+                        continue
+                except RuntimeError:
+                    continue 
             new_beam.append(env_copy)
     return new_beam
 
