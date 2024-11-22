@@ -78,7 +78,8 @@ def split_proof(
     raw = remove_comments(proof)  # remove comments
     tactics = [
         t
-        for b in re.split(r"(?<=\.)\s+(\++|\*+|\-+|{|})", raw)  # split proof in bullets
+        for a in re.split(r"(\{|\})", raw) # split braces
+        for b in re.split(r"(?<=\.)\s+(\++|\*+|\-+)", a)  # split proof in bullets
         for s in re.split(r"(?<=\.)\s+", b)  # split bullets in tactics
         if (t := s.strip())  # remove empty steps
     ]
