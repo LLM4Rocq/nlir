@@ -149,7 +149,6 @@ def beam_search(
     if sorting_holes:
         sort_beam = sort_holes
     beam = [env]
-    #env_origin = env.deepcopy()
     for step in range(max_steps):
         print(f"\nBeam search, step {step}:\n")
         # expand bean
@@ -159,11 +158,6 @@ def beam_search(
                 if new_beam[0].proof_finished:
                     proof = " ".join(new_beam[0].proof)
                     return Status(step, True, proof)
-                else:
-                    num_add = beam_size - len(new_beam)
-                    print(f"adding {num_add} new envs to beam")
-                    beam = new_beam
-                    beam.extend([env.deepcopy() for _ in range(num_add)])
 
             else: 
                 # sort new_beam
