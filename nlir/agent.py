@@ -8,6 +8,7 @@ from pathlib import Path
 from omegaconf import DictConfig
 import concurrent.futures
 import weave
+from .utils import get_agent
 
 class LLM(ABC):
     """
@@ -15,9 +16,8 @@ class LLM(ABC):
     `response` and `multi_responses` are used in `search`.
     """
 
-    def __init__(self, log_file: str, cfg_agent: DictConfig):
+    def __init__(self, log_file: str):
         self.log_file = log_file
-        self.cfg_agent = cfg_agent
 
     def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
         with open(self.log_file, "a") as file:
@@ -57,50 +57,11 @@ class GPT(LLM):
         cfg_agent: DictConfig,
     ):
 
-        super().__init__(log_file, cfg_agent)
-        #self.model_id = model_id
-        #self.temperature = temperature
-        if self.cfg_agent.local:
-            if self.cfg_agent.provider == "ollama":
-                self.client = oai.OpenAI(
-                    api_key="EMPTY",
-                    base_url='http://localhost:11434/v1', 
-                )
-            else:
-                self.client = oai.OpenAI(
-                    api_key="EMPTY",
-                    base_url='http://gpu012:8000/v1',
-                )
-            self.chat_complete = self.client.chat.completions.create
-        else:
-            if self.cfg_agent.provider == "openai":
-                self.client = oai.OpenAI(
-                    project=os.environ["OPENAI_PROJECT"],
-                    api_key=os.environ["OPENAI_API_KEY"],
-                )
-                self.chat_complete = self.client.chat.completions.create
-            elif self.cfg_agent.provider == "xai":
-                self.client = oai.OpenAI(
-                    api_key=os.environ["XAI_API_KEY"], 
-                    base_url="https://api.x.ai/v1"
-                )
-                self.chat_complete = self.client.chat.completions.create
-            elif self.cfg_agent.provider == "deepseek": 
-                self.client = oai.OpenAI(
-                    api_key=os.environ["DEEPSEEK_API_KEY"], 
-                    base_url="https://api.deepseek.com"
-                )
-                self.chat_complete = self.client.chat.completions.create
-            elif self.cfg_agent.provider == "mistral":
-                from mistralai import Mistral
-                if self.cfg_agent.model_id.startswith("codestral"):
-                    self.client = Mistral(api_key=os.environ["CODESTRAL_API_KEY"], server_url='https://codestral.mistral.ai')
-                else:
-                    self.client = Mistral(api_key=os.environ["MISTRAL_API_KEY"]
-                    )
-                self.chat_complete = self.client.chat.complete
-            else:
-                raise RuntimeError("Unknown provider")
+        super().__init__(log_file)
+        self.model_id = cfg_agent.model_id
+        self.temperature = cfg_agent.temperature
+        self.provider = cfg_agent.provider
+        self.chat_complete = get_agent(cfg_agent)
 
     @weave.op()
     def response(
@@ -109,12 +70,12 @@ class GPT(LLM):
         list(map(self.log, messages))
         resp = (
             self.chat_complete(
-                model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature
+                model=self.model_id, messages=messages, temperature=self.temperature
             )
             .choices[0]
             .message
         )
-        if self.cfg_agent.provider == "mistral":
+        if self.provider == "mistral":
             resp = ChatCompletionMessage(**resp.dict())    
         self.log(resp)
         return resp
@@ -124,7 +85,7 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        if self.cfg_agent.provider == "deepseek":
+        if self.provider == "deepseek":
             with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
                 these_futures = [executor.submit(self.response, messages) for _ in range(n)]
                 concurrent.futures.wait(these_futures)
@@ -132,13 +93,13 @@ class GPT(LLM):
 
         else:
             resp = self.chat_complete(
-            model=self.cfg_agent.model_id, messages=messages, temperature=self.cfg_agent.temperature, n=n
+            model=self.model_id, messages=messages, temperature=self.temperature, n=n
         )
-        if self.cfg_agent.provider == "mistral":
+        if self.provider == "mistral":
             for c in resp.choices:
                 self.log(c.message.dict())
             return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
-        elif self.cfg_agent.provider == "deepseek":
+        elif self.provider == "deepseek":
             return resp
         else:
             for c in resp.choices:
@@ -154,7 +115,7 @@ class Ghost(LLM):
 
     def __init__(self, source_file):
         source = Path(source_file)
-        super().__init__(os.path.join(source.parent, f"{source.stem}_replay.jsonl"), cfg_agent=None)
+        super().__init__(os.path.join(source.parent, f"{source.stem}_replay.jsonl"))
         logs = []
         with open(source_file, "r") as file:
             for line in file:
