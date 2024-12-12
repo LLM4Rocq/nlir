@@ -9,6 +9,7 @@ We propose two interactive proof protocols both leveraging natural language reas
 Our approach’s originality is that although both protocols’ inputs (goals) and outputs (tactics) are Coq code, the agent internally uses natural language as an intermediate representation to analyze the input and guide the code generation.
 We couple both protocols with standard search algorithms leveraging feedback from the ITP and using natural language to rerank proof candidates.
 
+4th MATH-AI Workshop at NeurIPS'24 paper available on [OpenReview](https://openreview.net/forum?id=QzOc0tpdef)
 
 ## Install
 
