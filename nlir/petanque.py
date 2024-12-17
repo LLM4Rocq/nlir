@@ -110,7 +110,7 @@ class Env(ABC):
     `exec` and `output` need to be defined for `search`
     """
 
-    def __init__(self, pet, workspace, file, thm, context, verbose=True):
+    def __init__(self, pet, workspace, file, thm, context, verbose=False):
         self.pet = pet
         self.workspace = workspace
         self.file = file
