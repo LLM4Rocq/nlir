@@ -23,7 +23,7 @@ def check_benchmark(
     for thms in cfg.benchmark:
         file_path = Path(wk_path, thms.file).absolute()
         for thm in thms.theorems:
-            if counter in range(cfg.start_theorem,cfg.end_theorem):
+            if counter in range(cfg.start_theorem, cfg.end_theorem):
                 try:
                     pet.start(str(file_path), thm)
                     theorems.append((file_path, thm))
@@ -31,7 +31,9 @@ def check_benchmark(
                     errors.append(f"- File {thms.file} {thm}: {err.message}")
             counter += 1
     if not errors:
-        print(f"Benchmarking {len(theorems)} theorems starting from {cfg.start_theorem} in {len(cfg.benchmark)} files")
+        print(
+            f"Benchmarking {len(theorems)} theorems starting from {cfg.start_theorem} in {len(cfg.benchmark)} files"
+        )
     else:
         print(f"Config contains the following errors:", file=sys.stderr)
         print("\n".join(errors), file=sys.stderr)
@@ -69,6 +71,10 @@ def main(cfg: DictConfig):
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
     if cfg.theorem and cfg.file:
+        if cfg.weave:
+            model_id = cfg.agent.model_id
+            name_expe = f"{model_id.split('/')[-1]}:{cfg.file}"
+            weave.init(name_expe)
         # Only prove thm from file (ignore benchmark)
         dt = datetime.now().strftime("%y%m%d-%H%M%S")
         log_path = Path(cfg.log_dir, f"{cfg.file}:{cfg.theorem}_{dt}.jsonl").absolute()
@@ -88,7 +94,8 @@ def main(cfg: DictConfig):
         )
 
         print(f"Try to prove {cfg.theorem} from {cfg.file}")
-        status = search(agent, env, cfg.search.max_steps)
+        with weave.attributes({"file": cfg.file, "thm": cfg.theorem}):
+            status = search(agent, env, cfg.search.max_steps)
         print(f"\n\n--- Success: {status.success} ---")
         print(f"Proof: {status.proof}")
         print("---\n\n")
@@ -104,7 +111,9 @@ def main(cfg: DictConfig):
 
         results = {"names": [], "success": [], "steps": []}
         theorems = check_benchmark(pet, wk_path, cfg)
-        res_path = Path(log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}.json")
+        res_path = Path(
+            log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}.json"
+        )
 
         for file_path, thm in theorems:
             print(f"\n\nTrying to prove {thm} from {file_path.stem}")

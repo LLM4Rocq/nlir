@@ -8,7 +8,9 @@ from pathlib import Path
 from omegaconf import DictConfig
 import concurrent.futures
 import weave
-from .utils import get_agent
+from weave.trace.util import ContextAwareThreadPoolExecutor
+from .utils import get_agent, allow_mutli_response
+
 
 class LLM(ABC):
     """
@@ -61,6 +63,7 @@ class GPT(LLM):
         self.model_id = cfg_agent.model_id
         self.temperature = cfg_agent.temperature
         self.provider = cfg_agent.provider
+        self.allow_multi_response = allow_mutli_response(self.provider)
         self.chat_complete = get_agent(cfg_agent)
 
     @weave.op()
@@ -103,21 +106,26 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        if self.provider == "deepseek":
-            with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-                these_futures = [executor.submit(self.response, messages) for _ in range(n)]
+        if self.allow_multi_response:
+            resp = self.chat_complete(
+                model=self.model_id,
+                messages=messages,
+                temperature=self.temperature,
+                n=n,
+            )
+        else:
+            # provider not supporting multi response
+            with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
+                these_futures = [
+                    executor.submit(self.response, messages) for _ in range(n)
+                ]
                 concurrent.futures.wait(these_futures)
                 resp = [future.result() for future in these_futures]
-
-        else:
-            resp = self.chat_complete(
-            model=self.model_id, messages=messages, temperature=self.temperature, n=n
-        )
         if self.provider == "mistral":
             for c in resp.choices:
                 self.log(c.message.dict())
             return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
-        elif self.provider == "deepseek":
+        elif not self.allow_multi_response:
             return resp
         else:
             for c in resp.choices:

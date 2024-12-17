@@ -5,10 +5,11 @@ from typing import List
 import re
 from typing import Iterable
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
-from .prompts import comparison_prompts
+from .prompts import comparison_prompts, tactic_prompts, template_prompts
 from functools import partial
 from ast import literal_eval
 import weave
+
 
 @dataclass
 class Status:
@@ -16,7 +17,12 @@ class Status:
     success: bool
     proof: str
 
-@weave.op()
+
+def naive_name(call):
+    return f"Naive-{call.attributes['thm']}-{call.attributes['file']}"
+
+
+@weave.op(call_display_name=naive_name)
 def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
     for step in range(max_steps):
         response = agent.response(env.prompt)
@@ -31,7 +37,8 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
                 agent.log({"role": "user", "content": f"Failed Proof: {proof}"})
                 return Status(step, False, proof)
         else:
-            if len(str(env.prompt)) > 100000:
+            env_prompt = env.prompt
+            if len(str(env_prompt)) > 100000:
                 # prompt is too big!
                 break
 
@@ -49,13 +56,16 @@ def create_comparison_prompt(
     """
     Build the comparison prompt from the list of environments.
     """
-    system_prompt = comparison_prompts.comparison_system_prompt
+    if list_env[0].__class__.__name__ == "TacticEnv":
+        system_prompt = tactic_prompts.comparison_system_prompt
+    else:
+        system_prompt = template_prompts.comparison_system_prompt
     intro = comparison_prompts.user_prompt.format(
         theorem_code=list_env[0].thm_code,
     )
     attempts = "\n\n".join(
         [
-            f"Here is the {i}th attempt:\n\n{env.prompt_for_comparison}"
+            f"- Attempt {i}:\n\n{env.info_for_comparison}"
             for i, env in enumerate(list_env)
         ]
     )
@@ -66,8 +76,8 @@ def create_comparison_prompt(
     ]
 
 
-def parse_comparison(
-    message: ChatCompletionMessage) -> List[int]:
+@weave.op()
+def parse_comparison(message: ChatCompletionMessage) -> List[int]:
     if message.content:
         match = re.match(
             r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", message.content, re.DOTALL
@@ -89,6 +99,7 @@ def parse_comparison(
         return parsed
     return []
 
+
 @weave.op()
 def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
     comparison_prompt = create_comparison_prompt(new_beam)
@@ -103,10 +114,9 @@ def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
 def sort_holes(new_beam: list[TemplateEnv]) -> list[TemplateEnv]:
     return sorted(new_beam, key=lambda x: len(x.holes))
 
+
 @weave.op()
-def expand_beam(
-    beam: list[Env], agent: LLM, n_reponses: int
-) -> list[Env]:
+def expand_beam(beam: list[Env], agent: LLM, n_reponses: int) -> list[Env]:
     new_beam = []
     for env in beam:
         responses = agent.multi_responses(env.prompt, n_reponses)
@@ -132,8 +142,10 @@ def expand_beam(
             new_beam.append(env_copy)
     return new_beam
 
+
 def bs_name(call):
     return f"BS-{call.attributes['thm']}-{call.attributes['file']}"
+
 
 @weave.op(call_display_name=bs_name)
 def beam_search(
@@ -157,7 +169,8 @@ def beam_search(
                 if new_beam[0].proof_finished:
                     proof = " ".join(new_beam[0].proof)
                     return Status(step, True, proof)
-
+                else:
+                    beam = new_beam
             else:
                 # sort new_beam
                 beam = sort_beam(new_beam)
@@ -172,7 +185,7 @@ def beam_search(
             )
             return Status(step, False, proof)
 
-    #beam = sort_holes(beam)
+    # beam = sort_holes(beam)
     proof = " ".join(beam[0].proof)
     agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
     return Status(max_steps, False, proof)
