@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 import concurrent.futures
 import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
-from .utils import get_agent, allow_mutli_response
+from .utils import get_agent, allow_mutli_responses
 
 
 class LLM(ABC):
@@ -63,7 +63,7 @@ class GPT(LLM):
         self.model_id = cfg_agent.model_id
         self.temperature = cfg_agent.temperature
         self.provider = cfg_agent.provider
-        self.allow_multi_response = allow_mutli_response(self.provider)
+        self.allow_multi_responses = allow_mutli_responses(self.provider)
         self.chat_complete = get_agent(cfg_agent)
 
     @weave.op()
@@ -97,6 +97,8 @@ class GPT(LLM):
             resp = ChatCompletionMessage(**resp.dict())
         elif self.provider == "anthropic":
             resp = ChatCompletionMessage(content=resp, role="assistant")
+        elif self.provider == "anthropic":
+            resp = ChatCompletionMessage(content=resp, role="assistant")
 
         self.log(resp)
         return resp
@@ -106,7 +108,7 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        if self.allow_multi_response:
+        if self.allow_multi_responses:
             resp = self.chat_complete(
                 model=self.model_id,
                 messages=messages,
@@ -125,7 +127,7 @@ class GPT(LLM):
             for c in resp.choices:
                 self.log(c.message.dict())
             return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
-        elif not self.allow_multi_response:
+        elif not self.allow_multi_responses:
             return resp
         else:
             for c in resp.choices:

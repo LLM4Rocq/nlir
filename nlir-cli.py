@@ -94,7 +94,9 @@ def main(cfg: DictConfig):
         )
 
         print(f"Try to prove {cfg.theorem} from {cfg.file}")
-        with weave.attributes({"file": cfg.file, "thm": cfg.theorem}):
+        with weave.attributes(
+            {"file": cfg.file, "thm": cfg.theorem, "kind": cfg.search.kind}
+        ):
             status = search(agent, env, cfg.search.max_steps)
         print(f"\n\n--- Success: {status.success} ---")
         print(f"Proof: {status.proof}")
@@ -123,7 +125,9 @@ def main(cfg: DictConfig):
                 str(log_path),
                 cfg.agent,
             )
-            with weave.attributes({"file": file_path.stem, "thm": thm}):
+            with weave.attributes(
+                {"file": file_path.stem, "thm": thm, "kind": cfg.search.kind}
+            ):
                 status = search(agent, env, cfg.search.max_steps)
             results["names"].append(f"{env.file}:{env.thm}")
             results["success"].append(status.success)
