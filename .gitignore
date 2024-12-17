@@ -1,6 +1,7 @@
 .vscode
 .envrc
 .python-version
+miniF2F
 __pycache__
 poetry.lock
 outputs

@@ -1,1 +1,0 @@
-let algebra-3rootspoly-amdtamctambeqnasqmbpctapcbtdpasqmbpctapcbta = `!b:complex c:complex d:complex a:complex. (a - d) * (a - c) * (a - b) = -- (((a pow 2 - (b + c) * a) + c * b) * d) + (a pow 2 - (b + c) * a + c * b) * a`;;

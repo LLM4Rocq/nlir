@@ -128,7 +128,7 @@ The conversation logs and the configuration will be stored in `./outputs/date/ti
 
 This respository also provides a translation mechanism. Given a natural language description of a theorem along with its Lean and Isabelle codes, the agent will try to translate the theorem in Rocq.
 
-This add-on main purpose is to translate the set of theorems *miniF2F* found [here](https://github.com/facebookresearch/miniF2F/tree/main). So if used on another set of theorems, the set should have the same structure as the [miniF2F](./miniF2F/) folder.
+This add-on main purpose is to translate the set of theorems *miniF2F* found [here](https://github.com/facebookresearch/miniF2F/tree/main). So if used on another set of theorems, the set should have the same structure as the [small_miniF2F](./examples/small_miniF2F/) folder.
 
 There are two modes for this program, one can translate a single theorem by specifying its name or translate the whole set if no theorem is specified.
 

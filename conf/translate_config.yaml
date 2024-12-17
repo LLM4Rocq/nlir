@@ -1,4 +1,4 @@
-workspace: "miniF2F"
+workspace: "examples/small_miniF2F"
 theorem: null
 prompt: simple_question1
 output_dir: "translations"
