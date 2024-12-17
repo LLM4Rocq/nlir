@@ -1,10 +1,10 @@
 # NLIR: Natural Language Intermediate Representation for Mechanized Theorem Proving
 
 NLIR leverage LLMs natural language reasoning ability for theorem proving with the Rocq interactive theorem prover (ITP).
-We propose two interactive proof protocols both leveraging natural language reasoning: 
+We propose two interactive proof protocols both leveraging natural language reasoning:
 
- - Tactic-by-tactic proof construction mimics the typical behavior of a standard Coq user: given the current goals, the agent generates one or several tactics that updates the goals and repeats this process until the proof is complete. 
- - Hierarchical proof templating tries to generate full proofs directly. Failed tactics are then replaced with holes to obtain a proof template. The agent repeats the process of filling each hole until the proof is complete. 
+ - Tactic-by-tactic proof construction mimics the typical behavior of a standard Coq user: given the current goals, the agent generates one or several tactics that updates the goals and repeats this process until the proof is complete.
+ - Hierarchical proof templating tries to generate full proofs directly. Failed tactics are then replaced with holes to obtain a proof template. The agent repeats the process of filling each hole until the proof is complete.
 
 Our approach’s originality is that although both protocols’ inputs (goals) and outputs (tactics) are Coq code, the agent internally uses natural language as an intermediate representation to analyze the input and guide the code generation.
 We couple both protocols with standard search algorithms leveraging feedback from the ITP and using natural language to rerank proof candidates.
@@ -50,7 +50,7 @@ You should see each iteration of the proof in stdout.
 We use [hydra](https://hydra.cc/docs/intro/) to manage the configurations.
 
 ```bash
-$ python nlir-cli.py --help           
+$ python nlir-cli.py --help
 nlri-cli is powered by Hydra.
 
 There are two possible modes:

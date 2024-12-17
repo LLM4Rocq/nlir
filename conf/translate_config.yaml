@@ -1,0 +1,31 @@
+workspace: "miniF2F"
+theorem: null
+prompt: simple_question1
+output_dir: "translations"
+
+hydra:
+  help:
+    app_name: translate-cli
+
+    template: |
+      ${hydra.help.header}
+      There are two possible modes:
+      - Use options `theorem=my_thm` to translate one theorem.
+      - With no theorem specified, all theorems are translated.
+
+      Alternatively you can use your own config file with the option `--config-name myconf.yaml`.
+      Config files should be in the `conf/translate` directory.
+
+      == Config ==
+      Override anything in the config (foo.bar=value)
+
+      $CONFIG
+
+      ${hydra.help.footer}
+
+# @package _global_
+defaults:
+  - _self_
+  - agent: qwencode7b
+  - override hydra/job_logging: none
+  - override hydra/hydra_logging: none
