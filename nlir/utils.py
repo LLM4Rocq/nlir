@@ -1,6 +1,7 @@
 import os
 import openai as oai
 from omegaconf import DictConfig
+from functools import partial
 
 
 def get_agent(cfg_agent: DictConfig):
@@ -10,7 +11,7 @@ def get_agent(cfg_agent: DictConfig):
             base_url = "http://localhost:11434/v1"
         else:
             # TODO name of gpu needs to be retrieved at allocation
-            base_url = "http://gpu012:8000/v1"
+            base_url = "http://localhost:8000/v1"
         client = oai.OpenAI(api_key=api_key, base_url=base_url)
     else:
         if cfg_agent.provider == "mistral":
@@ -24,6 +25,14 @@ def get_agent(cfg_agent: DictConfig):
             else:
                 client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
             return client.chat.complete
+        elif cfg_agent.provider == "anthropic":
+            import anthropic
+
+            api_key = os.environ["ANTHROPIC_API_KEY"]
+            client = anthropic.Anthropic(
+                api_key=os.environ["ANTHROPIC_API_KEY"],
+            )
+            return client.messages.create
         elif cfg_agent.provider == "openai":
             project = os.environ["OPENAI_PROJECT"]
             api_key = os.environ["OPENAI_API_KEY"]
@@ -43,8 +52,9 @@ def get_agent(cfg_agent: DictConfig):
     return client.chat.completions.create
 
 
-def allow_mutli_response(provider):
-    if provider == "deepseek" or "ollama":
+def allow_mutli_responses(provider):
+    if provider in ["deepseek", "ollama", "anthropic"]:
+        # TBC for anthropic (and for xai)
         return False
     else:
         return True

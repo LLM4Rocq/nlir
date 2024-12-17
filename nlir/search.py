@@ -19,7 +19,7 @@ class Status:
 
 
 def naive_name(call):
-    return f"Naive-{call.attributes['thm']}-{call.attributes['file']}"
+    return f"Naive-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
 
 
 @weave.op(call_display_name=naive_name)
@@ -145,7 +145,7 @@ def expand_beam(beam: list[Env], agent: LLM, n_reponses: int) -> list[Env]:
 
 
 def bs_name(call):
-    return f"BS-{call.attributes['thm']}-{call.attributes['file']}"
+    return f"BS-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
 
 
 @weave.op(call_display_name=bs_name)
