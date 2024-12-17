@@ -109,7 +109,10 @@ def main(cfg: DictConfig):
             model_id = cfg.agent.model_id
             name_expe = f"{model_id.split('/')[-1]}:{cfg.benchmark[0].file}"
             weave.init(name_expe)
-        log_dir = HydraConfig.get().runtime.output_dir
+        if cfg.log_dir:
+            log_dir = cfg.log_dir
+        else:
+            log_dir = HydraConfig.get().runtime.output_dir
 
         results = {"names": [], "success": [], "steps": []}
         theorems = check_benchmark(pet, wk_path, cfg)
