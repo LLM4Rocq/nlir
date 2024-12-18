@@ -389,7 +389,7 @@ class TemplateEnv(Env):
     def proof_finished(self) -> bool:
         if self.holes:
             return False
-        return self.check_proof() 
+        return self.check_proof()
 
     def exec(self, message: ChatCompletionMessage):
         """

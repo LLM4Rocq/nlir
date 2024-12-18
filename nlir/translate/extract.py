@@ -105,7 +105,30 @@ def extract_informal(directory: str):
 
     return theorems
 
-def extract_all(directory: str) :
+def extract_coq_theorem(message: str):
+    """
+    Extracts a Coq theorem from the response of an agent.
+
+    Args:
+        message (str): The response of the agent.
+
+    Returns:
+        str: The Coq theorem if it exists, empty if not.
+    """
+
+    # Regular expression to match the theorem.
+    theorem_pattern = re.compile(
+        r"```coq\s*(?P<body>Theorem (?:[\S\s](?!Proof))+)\sProof\.(?:[\S\s](?!```))*(?:Admitted|Qed|Defined)\.\s*```",
+        re.DOTALL
+    )
+
+    # Find all matches of theorems
+    theorems = theorem_pattern.finditer(message)
+    theorems = [match.group('body') for match in theorems]
+
+    return theorems[-1]
+
+def extract_theorems(directory: str):
     """
     Extracts the Lean, Isabelle and informal description version of all theorems and their proofs from a directory matching the structure of the Facebook's miniF2F git repository : https://github.com/facebookresearch/miniF2F/tree/main.
 
