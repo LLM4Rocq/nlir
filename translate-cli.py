@@ -18,9 +18,9 @@ def decode_response(file_path: str):
 
     return messages[-1]["content"]
 
-def translate(res_path: str, log_path: str, cfg_translator: DictConfig, theorem, prompt: Prompt):
+def translate_one_thm(res_path: str, log_path: str, cfg_translator: DictConfig, theorem, prompt: Prompt):
     """
-    Translates the theorem to Coq and write it in the appropriate Coq file.
+    Translates a theorem to Coq and write it in the appropriate Coq file.
 
     Args:
         res_path (str): Path to the Coq file to be written.
@@ -53,7 +53,16 @@ def translate(res_path: str, log_path: str, cfg_translator: DictConfig, theorem,
     return theorem
 
 @hydra.main(version_base=None, config_path="conf", config_name="translate_config")
-def main(cfg: DictConfig):
+def translate_once(cfg: DictConfig):
+    """
+    Translates one or a complete set of theorems to Coq.
+
+    Args:
+        cfg (Dictconfig): The configuration needed for the translation.
+
+    Returns:
+        Nothing, translates theorems in resulting files
+    """
 
     # Extract all theorems
     theorems = extract_theorems(cfg.workspace)
@@ -84,7 +93,7 @@ def main(cfg: DictConfig):
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         print(f"Try to translate {cfg.theorem}.")
-        translate(str(res_path), str(log_path), cfg.agent, theorem, prompt)
+        translate_one_thm(str(res_path), str(log_path), cfg.agent, theorem, prompt)
         print("Done.")
 
         print(decode_response(log_path))
@@ -100,7 +109,7 @@ def main(cfg: DictConfig):
         res_path.parent.mkdir(parents=True, exist_ok=True)
         log_path = Path(cfg.log_dir + f"/valid/{cfg.prompt}_{dt}", f"{theorem[0]}.jsonl").absolute()
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        translate(str(res_path), str(log_path), cfg.agent, theorem, prompt)
+        translate_one_thm(str(res_path), str(log_path), cfg.agent, theorem, prompt)
     print("Done translating valid theorems.")
 
     print("Translating test theorems.")
@@ -109,10 +118,10 @@ def main(cfg: DictConfig):
         res_path.parent.mkdir(parents=True, exist_ok=True)
         log_path = Path(cfg.log_dir + f"/test/{cfg.prompt}_{dt}", f"{theorem[0]}.jsonl").absolute()
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        translate(str(res_path), str(log_path), cfg.agent, theorem, prompt)
+        translate_one_thm(str(res_path), str(log_path), cfg.agent, theorem, prompt)
     print("Done translating test theorems.")
 
     sys.exit(0)
 
 if __name__ == "__main__":
-    main()
+    translate_once()
