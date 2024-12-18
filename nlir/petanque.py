@@ -116,7 +116,6 @@ class Env(ABC):
         self.path = os.path.join(workspace, file)
         self.thm = thm
         self.proof: list[str] = []
-        self.initial_state: State = self.pet.start(self.path, thm)
         self.thm_code = pp_goals(self.pet.goals(self.initial_state))
         self.n_interactions = 0
         if context:
@@ -175,7 +174,7 @@ class TacticEnv(Env):
         self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool
     ):
         super().__init__(pet, workspace, file, thm, context)
-        self.state: State = self.initial_state
+        self.state: State = self.pet.start(self.path, self.thm)
         self.previous_unsuccessful = []
 
     def parse(self, message: ChatCompletionMessage) -> list[str]:
@@ -290,6 +289,7 @@ class TemplateEnv(Env):
         self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool
     ):
         super().__init__(pet, workspace, file, thm, context)
+        self.initial_state = self.pet.start(self.path, self.thm)
         self.template = Template(state=self.initial_state, proof=[])
         self.holes: deque[Template] = deque([self.template])
 
@@ -438,3 +438,69 @@ class TemplateEnv(Env):
             template_proof=self.template.tactics,
             n_interactions=self.n_interactions,
         )
+
+class TranslateEnv(Env):
+    """
+    Petanque environment used for translating.
+    """
+
+    def __init__(self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool):
+        super().__init__(pet, workspace, file, thm, context)
+
+    def parse(self, message: ChatCompletionMessage) -> str:
+        """
+        Parse an agent response to get a theorem.
+        """
+
+        if message.content:
+            # Regular expression to match the theorem
+            theorem_pattern = re.compile(
+                r"```coq\s(?P<body>(?:[\S\s](?!Proof))*)\sProof\.(?:[\S\s](?!```))*\s```",
+                re.DOTALL
+            )
+
+            # Find all matches of theorems
+            theorems = theorem_pattern.finditer(message)
+            theorems = [match.group('body') for match in theorems]
+
+            return theorems[-1] + "\nProof.\nAdmitted."
+
+        else:
+            return "admit."
+
+    def write(self, proof: str):
+        """
+        Write the proof to the file.
+        """
+
+        with open(self.path, 'w') as file:
+            file.write(proof)
+
+    def exec(self, message: ChatCompletionMessage):
+        """
+        Parse and execute the LLM response.
+        """
+
+        self.n_interactions += 1
+        proof = self.parse(message)
+        self.write(proof)
+
+    def proof_finished(self) -> bool:
+        """
+        Tell if the translation is finished or not.
+        """
+
+        try:
+            self.pet.start(self.path, self.thm)
+            return True
+        except PetanqueError:
+            return False
+
+    def check_proof(self) -> bool:
+        """
+        Tell if the translation is finished or not.
+        """
+
+        return self.proof_finished()
+
+    # TODO : make the prompt part

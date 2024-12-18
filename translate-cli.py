@@ -3,10 +3,14 @@ import hydra
 from omegaconf import DictConfig
 from datetime import datetime
 from pathlib import Path
+from pytanque import Pytanque
 import sys
 from tqdm import tqdm
+from functools import partial
 
 from nlir.agent import GPT
+from nlir.petanque import TranslateEnv
+from nlir.search import naive_search, beam_search
 from nlir.translate.prompt import Prompt, prompt_list
 from nlir.translate.extract import extract_coq_theorem, extract_theorems
 
@@ -55,7 +59,7 @@ def translate_one_thm(res_path: str, log_path: str, cfg_translator: DictConfig, 
 @hydra.main(version_base=None, config_path="conf", config_name="translate_config")
 def translate_once(cfg: DictConfig):
     """
-    Translates one or a complete set of theorems to Coq.
+    Translates one or a complete set of theorems to Coq in only one try.
 
     Args:
         cfg (Dictconfig): The configuration needed for the translation.
@@ -123,5 +127,78 @@ def translate_once(cfg: DictConfig):
 
     sys.exit(0)
 
+@hydra.main(version_base=None, config_path="conf", config_name="translate_config")
+def translate(cfg: DictConfig):
+    """
+    Translates one or a complete set of theorems to Coq in several try.
+
+    Args:
+        cfg (Dictconfig): The configuration needed for the translation.
+
+    Returns:
+        Nothing, translates theorems in resulting files
+    """
+
+    # Set up the petanque client
+    wk_path = Path(cfg.workspace).expanduser().absolute()
+    pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
+    pet.connect()
+    pet.set_workspace(False, str(wk_path))
+
+    # Set the search function
+    match cfg.search.mode:
+        case "naive":
+            search = naive_search
+        case "beam":
+            search = partial(
+                beam_search,
+                beam_size=cfg.search.beam_size,
+                n_reponses=cfg.search.n_responses,
+            )
+        case _:
+            raise RuntimeError("search.mode config should be one of [naive, beam]")
+
+    # Extract all theorems
+    theorems = extract_theorems(cfg.workspace)
+
+    # Find the prompt
+    prompt = prompt_list[cfg.prompt]
+
+    # Only translate one theorem
+    if cfg.theorem:
+
+        # Find the theorem
+        theorem = None
+        for name, code in theorems["valid"].items():
+            if cfg.theorem == name:
+                theorem = name, code
+        for name, code in theorems["test"].items():
+            if cfg.theorem == name:
+                theorem = name, code
+        if theorem is None:
+            print(f"The theorem {cfg.theorem} has not been found.")
+            sys.exit(1)
+
+        # Set up the log file and the result file
+        dt = datetime.now().strftime("%y%m%d_%H%M%S")
+        log_path = Path(cfg.log_dir + "/single", f"{cfg.theorem}_{cfg.prompt}_{dt}.jsonl").absolute()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path = Path(cfg.workspace + "/coq/single", f"{cfg.theorem}_{cfg.prompt}_{dt}.v").absolute()
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create the agent
+        agent = GPT(str(log_path), cfg.agent)
+
+        # Create the petanque env
+        env = TranslateEnv(pet, str(wk_path), str(file_path), cfg.theorem, cfg.petanque.context)
+
+        # Start translating
+        print(f"Try to prove {cfg.theorem} in {file_path}.")
+        status = search(agent, env, cfg.search.max_steps)
+        print(f"\n\n--- Success: {status.success} ---")
+        print("---\n\n")
+
+        sys.exit(0)
+
 if __name__ == "__main__":
-    translate_once()
+    translate()
