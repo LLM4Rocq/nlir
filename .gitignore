@@ -7,6 +7,6 @@ __pycache__
 poetry.lock
 outputs
 logs
-translations
 *.jsonl
 .DS_Store
+_CoqProject
