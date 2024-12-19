@@ -61,6 +61,8 @@ user_prompt = """## Theorem and proof information
 
 You have interacted {n_interactions} times with the engine.
 
+{decorated_context}
+
 ### Theorem
 
 Here is the theorem to prove:
@@ -82,6 +84,12 @@ Here are the previous unsuccessful proof step attempts. These have all been trie
 ### Current goal(s)
 
 {current_goal}
+"""
+
+decorated_context = """
+Here are some useful definitions and lemmas:
+
+{context}
 """
 
 display_user_prompt = """##Prompt tactic

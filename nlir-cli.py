@@ -7,7 +7,7 @@ from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
 from nlir.agent import Ghost, GPT
 from nlir.petanque import TacticEnv, TemplateEnv
-from nlir.search import naive_search, beam_search
+from nlir.search import naive_search, beam_search, Status
 from pathlib import Path
 from datetime import datetime
 from omegaconf import DictConfig
@@ -120,18 +120,39 @@ def main(cfg: DictConfig):
             log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}.json"
         )
 
+        if cfg.replay:
+            res_path = Path(
+                log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}_replay.json"
+            )
+            path_folder = Path(cfg.replay)
+
         for file_path, thm in theorems:
+            missing_proof = False
             print(f"\n\nTrying to prove {thm} from {file_path.stem}")
             env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
-            log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
-            agent = GPT(
-                str(log_path),
-                cfg.agent,
-            )
+
+            if cfg.replay:
+                log_path = Path(path_folder, f"{file_path.stem}:{thm}.jsonl").absolute()
+                if log_path.exists():
+                    agent = Ghost(log_path.resolve())
+                else:
+                    missing_proof = True
+            else:
+                log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
+                agent = GPT(
+                    str(log_path),
+                    cfg.agent,
+                )
             with weave.attributes(
                 {"file": file_path.stem, "thm": thm, "kind": cfg.search.kind}
             ):
-                status = search(agent, env, cfg.search.max_steps)
+                if missing_proof:
+                    status = Status(1000, False, "Missing proof")
+                else:
+                    try:
+                        status = search(agent, env, cfg.search.max_steps)
+                    except StopIteration:
+                        status = Status(1000, False, "conversation stopped")
             results["names"].append(f"{env.file}:{env.thm}")
             results["success"].append(status.success)
             results["steps"].append(status.steps)
