@@ -246,9 +246,16 @@ class TacticEnv(Env):
         """
         Build the tactic prompt from the current goal.
         """
-        context = tactic_prompts.system_prompt
+        syst_prompt = tactic_prompts.system_prompt
+        if self.context:
+                decorated_context = tactic_prompts.decorated_context.format(
+                    context=self.context
+                )
+            else:
+                decorated_context = ""
         content = tactic_prompts.user_prompt.format(
             n_interactions=self.n_interactions,
+            decorated_context=decorated_context,
             theorem_code=self.thm_code,
             proof_steps=self.proof,
             previous_unsuccessful="\n".join(self.previous_unsuccessful),
@@ -265,7 +272,7 @@ class TacticEnv(Env):
                 )
             )
         return [
-            {"role": "system", "content": context},
+            {"role": "system", "content": syst_prompt},
             {"role": "user", "content": content},
         ]
 

@@ -165,7 +165,13 @@ class Ghost(LLM):
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        resp = [next(self.messages) for i in range(n)]
+        # resp = [next(self.messages) for i in range(n)]
+        resp = []
+        for i in range(n):
+            try:
+                resp.append(next(self.messages))
+            except StopIteration:
+                break
         for r in resp:
             self.log(r)
         return [ChatCompletionMessage(**r) for r in resp]
