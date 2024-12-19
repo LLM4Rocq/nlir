@@ -1,6 +1,7 @@
 workspace: "examples/small_miniF2F"
 theorem: null
 log_dir: "logs/translate"
+weave: false
 
 petanque:
   address: 127.0.0.1

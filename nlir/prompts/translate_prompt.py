@@ -39,16 +39,16 @@ system_prompt = """
 first_user_prompt = """
     ## Theorem information
 
-    Now, you are going to translate the theorem named {theorem_name}.
+    Now, you are going to translate the theorem named {thm_name}.
 
     Here is a description of what the theorem is about:
-    {theorem_informal}
+    {thm_informal}
 
     Here is the code of the theorem in Lean:
-    {theorem_lean}
+    {thm_lean}
 
     And here is the code of the theorem in Isabelle:
-    {theorem_isabelle}
+    {thm_isabelle}
 
     To help you, describe each step of the Lean and Isabelle versions using the natural language description,
     so you can use those steps when writing the theorem in Coq.
@@ -63,16 +63,16 @@ user_prompt = """
 
     ### Theorem
 
-    For your information, lets recall the natural language description of the theorem and its Lean and Isabelle versions.
+    For your information, lets recall the natural language description and the Lean and Isabelle versions of the theorem {thm_name}.
 
     Here is a description of what the theorem is about:
-    {theorem_informal}
+    {thm_informal}
 
     Here is the code of the theorem in Lean:
-    {theorem_lean}
+    {thm_lean}
 
     And here is the code of the theorem in Isabelle:
-    {theorem_isabelle}
+    {thm_isabelle}
 
     To help you, describe each step of the Lean and Isabelle versions using the natural language description,
     so you can use those steps when writing the theorem in Coq.
@@ -93,4 +93,14 @@ make_unsuccess = """
     with error message:
     {message}
 
+"""
+
+prompt_for_comparison = """
+    ### Information so far
+
+    You have interacted {n_interactions} times with the engine.
+
+    Here are the previous unsuccessful attempts:
+
+    {previous_unsuccessful}
 """

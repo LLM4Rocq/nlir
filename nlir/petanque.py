@@ -487,8 +487,8 @@ class TranslateEnv(Env):
 
         self.n_interactions += 1
         thm = self.parse(message)
-        self.proof = [thm]  # For better end message of the search algorithm
         self.write(thm)
+        self.proof = [thm]  # For better end message of the search algorithm
 
         try:
             self.pet.start(self.path, self.thm)
@@ -498,16 +498,52 @@ class TranslateEnv(Env):
             self.prev_unsuccess += unsuccess
             self.finished = False
 
+    @property
     def proof_finished(self) -> bool:
-        """
-        Tell if the translation is finished or not.
-        """
         return self.finished
 
+    @property
     def check_proof(self) -> bool:
-        """
-        Tell if the translation is finished or not.
-        """
         return self.finished
 
-    # TODO : make the prompt part
+    @property
+    def prompt(self) -> Iterable[ChatCompletionMessageParam]:
+        """
+        Build the translation prompt.
+        """
+
+        context = translate_prompt.system_prompt
+
+        if not self.n_interactions:
+            content = translate_prompt.first_user_prompt.format(
+                thm_name = self.thm,
+                thm_informal = self.thm_code["informal"],
+                thm_lean = self.thm_code["lean"],
+                thm_isabelle = self.thm_code["isabelle"]
+            )
+        else:
+            content = translate_prompt.user_prompt.format(
+                n_interactions = self.n_interactions,
+                thm_name = self.thm,
+                thm_informal = self.thm_code["informal"],
+                thm_lean = self.thm_code["lean"],
+                thm_isabelle = self.thm_code["isabelle"],
+                previous_unsuccessful = self.prev_unsuccessful
+            )
+
+
+        return [
+            {"role": "system", "content": context},
+            {"role": "user", "content": content},
+        ]
+
+    @property
+    def prompt_for_comparison(self) -> str:
+        """
+        Build the string containing the informations to be included in the comparison prompt.
+        """
+
+        return translate_prompt.prompt_for_comparison.format(
+            n_interactions = self.n_interactions,
+            previous_unsuccessful = self.prev_unsuccess
+        )

@@ -1,5 +1,7 @@
 import json
 import hydra
+import weave
+import numpy as np
 from omegaconf import DictConfig
 from datetime import datetime
 from pathlib import Path
@@ -181,9 +183,9 @@ def translate(cfg: DictConfig):
 
         # Set up the log file and the result file
         dt = datetime.now().strftime("%y%m%d_%H%M%S")
-        log_path = Path(cfg.log_dir + "/single", f"{cfg.theorem}_{cfg.prompt}_{dt}.jsonl").absolute()
+        log_path = Path(cfg.log_dir + "/single", f"{cfg.theorem}_{dt}.jsonl").absolute()
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path = Path(cfg.workspace + "/coq/single", f"{cfg.theorem}_{cfg.prompt}_{dt}.v").absolute()
+        file_path = Path(cfg.workspace + "/coq/single", f"{cfg.theorem}_{dt}.v").absolute()
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
@@ -192,13 +194,94 @@ def translate(cfg: DictConfig):
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.petanque.context)
 
-        # Start translating
-        print(f"Try to prove {cfg.theorem} in {file_path}.")
+        # Translate the theorem
+        print(f"Try to translate {cfg.theorem} in {file_path}.")
         status = search(agent, env, cfg.search.max_steps)
         print(f"\n\n--- Success: {status.success} ---")
         print("---\n\n")
 
         sys.exit(0)
+
+    # Translates all theorems
+    dt = datetime.now().strftime("%y%m%d_%H%M%S")
+
+    # Create a weave session if needed
+    if cfg.weave:
+        model_id = cfg.model_id
+        name_expe = f"{model_id.split('/')[-1]}:{cfg.workspace}"
+        weave.init(name_expe)
+
+    results = {"names": [], "success": [], "steps": []}
+    res_path = Path(cfg.workspace + f"coq/{dt}", f"eval_results.json")
+
+    # Translating valid theorems
+    print("Translating valid theorems.")
+
+    for theorem in tqdm(theorems["valid"].items()):
+
+        # Set up the log file and the result file
+        log_path = Path(cfg.log_dir + f"{dt}/valid", f"{theorem[0]}.jsonl").absolute()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path = Path(cfg.workspace + f"/coq/{dt}/valid", f"{theorem[0]}.v").absolute()
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create the agent
+        agent = GPT(str(log_path), cfg.agent)
+
+        # Create the petanque env
+        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.petanque.context)
+
+        # Translate the theorem
+        with weave.attributes({"file": file_path, "thm": theorem[0]}):
+            status = search(agent, env, cfg.search.max_steps)
+
+        # Adding the result
+        results["names"].append(f"{env.file}:{env.thm}")
+        results["success"].append(status.succes)
+        results["steps"].append(status.steps)
+        with open(res_path, 'w') as rf:
+            json.dumps(results, rf, ident=2)
+
+    print("Done translating valid theorems.")
+
+    # Translating test theorems
+    print("Translating test theorems.")
+
+    for theorem in tqdm(theorems["test"].items()):
+
+        # Set up the log file and the result file
+        log_path = Path(cfg.log_dir + f"{dt}/test", f"{theorem[0]}.jsonl").absolute()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path = Path(cfg.workspace + f"/coq/{dt}/test", f"{theorem[0]}.v").absolute()
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create the agent
+        agent = GPT(str(log_path), cfg.agent)
+
+        # Create the petanque env
+        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.petanque.context)
+
+        # Translate the theorem
+        with weave.attributes({"file": file_path, "thm": theorem[0]}):
+            status = search(agent, env, cfg.search.max_steps)
+
+        # Adding the result
+        results["names"].append(f"{env.file}:{env.thm}")
+        results["success"].append(status.succes)
+        results["steps"].append(status.steps)
+        with open(res_path, 'w') as rf:
+            json.dumps(results, rf, ident=2)
+
+    print("Done translating test theorems.")
+
+    # Pretty print the summary
+    print("\n\n--- Summary ---")
+    print(f"Successes: {np.sum(results["success"])}")
+    print(f"Success rate: {np.mean(results["succes"])}")
+    print(f"Average number of steps: {np.mean(results["steps"])}")
+    print("---\n\n")
+
+    sys.exit(0)
 
 if __name__ == "__main__":
     translate()
