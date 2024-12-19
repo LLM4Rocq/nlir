@@ -1,6 +1,5 @@
 workspace: "examples/small_miniF2F"
 theorem: null
-prompt: simple_question1
 log_dir: "logs/translate"
 
 petanque:

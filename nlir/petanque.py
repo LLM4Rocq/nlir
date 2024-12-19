@@ -6,7 +6,7 @@ from collections import deque
 from typing import Iterable, Union, Tuple
 from pytanque import Pytanque, State, Goal, PetanqueError
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
-from .prompts import tactic_prompts, template_prompts
+from .prompts import tactic_prompts, template_prompts, translate_prompt
 import copy
 
 
@@ -444,8 +444,12 @@ class TranslateEnv(Env):
     Petanque environment used for translating.
     """
 
-    def __init__(self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool):
-        super().__init__(pet, workspace, file, thm, context)
+    def __init__(self, pet: Pytanque, workspace: str, file: str, thm, context: bool):
+        super().__init__(pet, workspace, file, thm[0], context)
+        self.thm_code = thm[1]
+        self.finished = False
+        self.prev_unsuccess = []
+        self.proof.append(self.thm)
 
     def parse(self, message: ChatCompletionMessage) -> str:
         """
@@ -482,25 +486,28 @@ class TranslateEnv(Env):
         """
 
         self.n_interactions += 1
-        proof = self.parse(message)
-        self.write(proof)
+        thm = self.parse(message)
+        self.proof = [thm]  # For better end message of the search algorithm
+        self.write(thm)
+
+        try:
+            self.pet.start(self.path, self.thm)
+            self.finished = True
+        except PetanqueError as err:
+            unsuccess = translate_prompt.make_unsuccess.format(code=thm, message=err.message)
+            self.prev_unsuccess += unsuccess
+            self.finished = False
 
     def proof_finished(self) -> bool:
         """
         Tell if the translation is finished or not.
         """
-
-        try:
-            self.pet.start(self.path, self.thm)
-            return True
-        except PetanqueError:
-            return False
+        return self.finished
 
     def check_proof(self) -> bool:
         """
         Tell if the translation is finished or not.
         """
-
-        return self.proof_finished()
+        return self.finished
 
     # TODO : make the prompt part

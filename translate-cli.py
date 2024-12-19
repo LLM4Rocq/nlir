@@ -11,7 +11,7 @@ from functools import partial
 from nlir.agent import GPT
 from nlir.petanque import TranslateEnv
 from nlir.search import naive_search, beam_search
-from nlir.translate.prompt import Prompt, prompt_list
+from nlir.prompts.translate_prompt import Prompt, prompt_list
 from nlir.translate.extract import extract_coq_theorem, extract_theorems
 
 def decode_response(file_path: str):
@@ -190,7 +190,7 @@ def translate(cfg: DictConfig):
         agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
-        env = TranslateEnv(pet, str(wk_path), str(file_path), cfg.theorem, cfg.petanque.context)
+        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.petanque.context)
 
         # Start translating
         print(f"Try to prove {cfg.theorem} in {file_path}.")
