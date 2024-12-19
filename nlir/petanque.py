@@ -249,11 +249,11 @@ class TacticEnv(Env):
         """
         syst_prompt = tactic_prompts.system_prompt
         if self.context:
-                decorated_context = tactic_prompts.decorated_context.format(
-                    context=self.context
-                )
-            else:
-                decorated_context = ""
+            decorated_context = tactic_prompts.decorated_context.format(
+                context=self.context
+            )
+        else:
+            decorated_context = ""
         content = tactic_prompts.user_prompt.format(
             n_interactions=self.n_interactions,
             decorated_context=decorated_context,
