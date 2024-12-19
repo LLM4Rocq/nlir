@@ -116,7 +116,6 @@ class Env(ABC):
         self.path = os.path.join(workspace, file)
         self.thm = thm
         self.proof: list[str] = []
-        self.thm_code = pp_goals(self.pet.goals(self.initial_state))
         self.n_interactions = 0
         if context:
             with open(self.path, "r") as file:
@@ -175,6 +174,7 @@ class TacticEnv(Env):
     ):
         super().__init__(pet, workspace, file, thm, context)
         self.state: State = self.pet.start(self.path, self.thm)
+        self.thm_code = pp_goals(self.pet.goals(self.state))
         self.previous_unsuccessful = []
 
     def parse(self, message: ChatCompletionMessage) -> list[str]:
@@ -290,6 +290,7 @@ class TemplateEnv(Env):
     ):
         super().__init__(pet, workspace, file, thm, context)
         self.initial_state = self.pet.start(self.path, self.thm)
+        self.thm_code = pp_goals(self.pet.goals(self.initial_state))
         self.template = Template(state=self.initial_state, proof=[])
         self.holes: deque[Template] = deque([self.template])
 
@@ -444,12 +445,18 @@ class TranslateEnv(Env):
     Petanque environment used for translating.
     """
 
-    def __init__(self, pet: Pytanque, workspace: str, file: str, thm, context: bool):
-        super().__init__(pet, workspace, file, thm[0], context)
+    def __init__(self, pet: Pytanque, workspace: str, file: str, thm):
+        super().__init__(pet, workspace, file, thm[0], False)
         self.thm_code = thm[1]
         self.finished = False
-        self.prev_unsuccess = []
+        self.prev_unsuccess = ""
         self.proof.append(self.thm)
+
+    def deepcopy(self):
+        new = super().deepcopy()
+        new.thm_code = copy.deepcopy(self.thm_code)
+        new.finished = copy.deepcopy(self.finished)
+        new.prev_unsuccess = copy.deepcopy(self.prev_unsuccess)
 
     def parse(self, message: ChatCompletionMessage) -> str:
         """
@@ -459,12 +466,12 @@ class TranslateEnv(Env):
         if message.content:
             # Regular expression to match the theorem
             theorem_pattern = re.compile(
-                r"```coq\s(?P<body>(?:[\S\s](?!Proof))*)\sProof\.(?:[\S\s](?!```))*\s```",
+                r"```(?:coq)*\s(?P<body>(?:[\S\s](?!Proof))*)\sProof\.(?:[\S\s](?!```))*\s```",
                 re.DOTALL
             )
 
             # Find all matches of theorems
-            theorems = theorem_pattern.finditer(message)
+            theorems = theorem_pattern.finditer(message.content)
             theorems = [match.group('body') for match in theorems]
 
             return theorems[-1] + "\nProof.\nAdmitted."
@@ -502,7 +509,6 @@ class TranslateEnv(Env):
     def proof_finished(self) -> bool:
         return self.finished
 
-    @property
     def check_proof(self) -> bool:
         return self.finished
 
@@ -528,7 +534,7 @@ class TranslateEnv(Env):
                 thm_informal = self.thm_code["informal"],
                 thm_lean = self.thm_code["lean"],
                 thm_isabelle = self.thm_code["isabelle"],
-                previous_unsuccessful = self.prev_unsuccessful
+                previous_unsuccessful = self.prev_unsuccess
             )
 
 

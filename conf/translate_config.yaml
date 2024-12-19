@@ -8,7 +8,6 @@ petanque:
   port: 8765
   timeout: 10
   run_opts: null
-  context: true
 
 search:
   mode: naive
