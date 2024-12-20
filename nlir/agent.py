@@ -20,6 +20,9 @@ class LLM(ABC):
 
     def __init__(self, log_file: str):
         self.log_file = log_file
+        # Delete the log file if it exists
+        if os.path.exists(self.log_file):
+            os.remove(self.log_file)
 
     def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
         with open(self.log_file, "a") as file:

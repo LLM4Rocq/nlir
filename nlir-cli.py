@@ -47,12 +47,14 @@ def main(cfg: DictConfig):
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
     pet.connect()
     pet.set_workspace(False, str(wk_path))
+    is_template = False
 
     match cfg.search.kind:
         case "tactics":
             env_cls = TacticEnv
         case "template":
             env_cls = TemplateEnv
+            is_template = True
         case _:
             raise RuntimeError(
                 "search.kind config should be one of [tactics, template]"
@@ -66,6 +68,7 @@ def main(cfg: DictConfig):
                 beam_search,
                 beam_size=cfg.search.beam_size,
                 n_reponses=cfg.search.n_responses,
+                is_template=is_template,
             )
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
@@ -122,7 +125,8 @@ def main(cfg: DictConfig):
 
         if cfg.replay:
             res_path = Path(
-                log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}_replay.json"
+                payh_folder,
+                f"eval_results_{cfg.start_theorem}_{len(theorems)}_replay.json",
             )
             path_folder = Path(cfg.replay)
 
