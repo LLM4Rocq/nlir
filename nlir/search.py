@@ -174,9 +174,7 @@ def beam_search(
     for step in range(max_steps):
         print(f"\nBeam search, step {step}:\n")
         # expand bean
-        new_beam = (
-            expand_beam(beam, agent, n_reponses, max_steps - step, is_template),
-        )
+        new_beam = expand_beam(beam, agent, n_reponses, max_steps - step, is_template)
         if new_beam:
             if len(new_beam) <= beam_size:
                 if new_beam[0].proof_finished:
