@@ -116,7 +116,13 @@ def sort_holes(new_beam: list[TemplateEnv]) -> list[TemplateEnv]:
 
 
 @weave.op()
-def expand_beam(beam: list[Env], agent: LLM, n_reponses: int) -> list[Env]:
+def expand_beam(
+    beam: list[Env],
+    agent: LLM,
+    n_reponses: int,
+    remaining_steps: int,
+    is_template: bool,
+) -> list[Env]:
     new_beam = []
     for env in beam:
         responses = agent.multi_responses(env.prompt, n_reponses)
@@ -137,6 +143,10 @@ def expand_beam(beam: list[Env], agent: LLM, n_reponses: int) -> list[Env]:
                     elif env_copy.proof in [e.proof for e in new_beam]:
                         # avoid adding duplicate proofs
                         continue
+                    elif is_template:
+                        if len(env_copy.holes) > remaining_steps:
+                            # avoid adding proofs with too many holes
+                            continue
                 except RuntimeError:
                     continue
             new_beam.append(env_copy)
@@ -154,16 +164,19 @@ def beam_search(
     max_steps: int,
     beam_size: int,
     n_reponses: int,
+    is_template: bool,
     sorting_holes=False,
 ) -> Status:
     sort_beam = partial(sort_LLM, agent=agent)
-    if sorting_holes:
+    if sorting_holes and is_template:
         sort_beam = sort_holes
     beam = [env]
     for step in range(max_steps):
         print(f"\nBeam search, step {step}:\n")
         # expand bean
-        new_beam = expand_beam(beam, agent, n_reponses)
+        new_beam = (
+            expand_beam(beam, agent, n_reponses, max_steps - step, is_template),
+        )
         if new_beam:
             if len(new_beam) <= beam_size:
                 if new_beam[0].proof_finished:
