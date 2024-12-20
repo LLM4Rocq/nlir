@@ -14,8 +14,6 @@
     - pop_back'__push_back
     - St_enc_inj
     - St_eqb_spec
-    - Σ_eqb_spec
-    - Σ_enc_inj
     - listΣ_inj
     - map_inj
     - listT_enc_inj
@@ -94,7 +92,6 @@
     - TM_simplify_spec
     - TM_upd'_spec
     - nat_eqb_spec
-    - TNF_Node_expand_spec
     - TNF_Node_NonHalt
     - HaltDecider_cons_spec
     - SearchQueue_upd_spec
