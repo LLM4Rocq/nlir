@@ -151,12 +151,12 @@ def main(cfg: DictConfig):
                 {"file": file_path.stem, "thm": thm, "kind": cfg.search.kind}
             ):
                 if missing_proof:
-                    status = Status(1000, False, "Missing proof")
+                    status = Status(1001, False, "Missing proof")
                 else:
                     try:
                         status = search(agent, env, cfg.search.max_steps)
                     except StopIteration:
-                        status = Status(1000, False, "conversation stopped")
+                        status = Status(1002, False, "conversation stopped")
             results["names"].append(f"{env.file}:{env.thm}")
             results["success"].append(status.success)
             results["steps"].append(status.steps)
