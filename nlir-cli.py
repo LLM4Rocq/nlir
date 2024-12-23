@@ -62,7 +62,7 @@ def main(cfg: DictConfig):
 
     match cfg.search.mode:
         case "naive":
-            search = naive_search
+            search = partial(naive_search, is_template=is_template)
         case "beam":
             search = partial(
                 beam_search,
@@ -124,11 +124,11 @@ def main(cfg: DictConfig):
         )
 
         if cfg.replay:
+            path_folder = Path(cfg.replay)
             res_path = Path(
-                payh_folder,
+                path_folder,
                 f"eval_results_{cfg.start_theorem}_{len(theorems)}_replay.json",
             )
-            path_folder = Path(cfg.replay)
 
         for file_path, thm in theorems:
             missing_proof = False

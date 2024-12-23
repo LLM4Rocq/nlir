@@ -23,7 +23,7 @@ def naive_name(call):
 
 
 @weave.op(call_display_name=naive_name)
-def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
+def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Status:
     response = agent.response(env.prompt)  # Initial step
     for step in range(max_steps):
         env.exec(response)
@@ -41,6 +41,10 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
             if len(str(env_prompt)) > 100000:
                 # prompt is too big!
                 break
+            elif is_template:
+                if len(env.holes) > max_steps - step:
+                    # number of remaining steps is too big
+                    break
             response = agent.response(env_prompt)
 
     if not env.proof_finished:
