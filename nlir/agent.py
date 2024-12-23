@@ -151,6 +151,7 @@ class Ghost(LLM):
     def __iter__(self) -> Iterable[ChatCompletionMessage]:
         yield from self.messages
 
+    @weave.op()
     def response(
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
@@ -159,6 +160,7 @@ class Ghost(LLM):
         self.log(resp)
         return ChatCompletionMessage(**resp)
 
+    @weave.op()
     def multi_responses(
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
