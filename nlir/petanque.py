@@ -122,8 +122,8 @@ class Env(ABC):
         self.n_interactions = 0
         self.verbose = verbose
         if context:
-            with open(self.path, "r") as file:
-                self.context = get_context(file.read(), thm)
+            with open(self.path, "r") as read_file:
+                self.context = get_context(read_file.read(), thm)
         else:
             self.context = None
 

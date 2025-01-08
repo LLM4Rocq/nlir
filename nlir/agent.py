@@ -30,7 +30,7 @@ class LLM(ABC):
                 case ChatCompletionMessage():
                     print(message.model_dump_json(), file=file)
                 case _:
-                    print(json.dumps(message), file=file)
+                    print(json.dumps(message, ensure_ascii=False), file=file)
 
     @abstractmethod
     def response(
