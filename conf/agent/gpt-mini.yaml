@@ -1,0 +1,4 @@
+model_id: gpt-4o-mini
+temperature: 1.0
+local: false
+provider: "openai"
