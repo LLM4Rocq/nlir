@@ -68,15 +68,33 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
         list(map(self.log, messages))
-        resp = (
-            self.chat_complete(
-                model=self.model_id, messages=messages, temperature=self.temperature
+
+        if self.provider == "anthropic":
+            resp = (
+                self.chat_complete(
+                    max_tokens=2048,
+                    messages=[messages[1]],
+                    system=messages[0]["content"],
+                    model=self.model_id,
+                    temperature=self.temperature,
+                )
+                .content[0]
+                .text
             )
-            .choices[0]
-            .message
-        )
+        else:
+            resp = (
+                self.chat_complete(
+                    model=self.model_id, messages=messages, temperature=self.temperature
+                )
+                .choices[0]
+                .message
+            )
+
         if self.provider == "mistral":
-            resp = ChatCompletionMessage(**resp.dict())    
+            resp = ChatCompletionMessage(**resp.dict())
+        elif self.provider == "anthropic":
+            resp = ChatCompletionMessage(content=resp, role="assistant")
+
         self.log(resp)
         return resp
 
@@ -141,3 +159,44 @@ class Ghost(LLM):
         for r in resp:
             self.log(r)
         return [ChatCompletionMessage(**r) for r in resp]
+
+class Human(LLM):
+    """
+    Human agent to answer instead of the computer.
+    """
+
+    def show(self, message: ChatCompletionMessageParam):
+        print("Role:", message["role"])
+        print("Content:\n", message["content"])
+
+    @weave.op()
+    def response(
+        self, messages: Iterable[ChatCompletionMessageParam]
+    ) -> ChatCompletionMessage:
+        list(map(self.log, messages))
+        list(map(self.show, messages))
+
+        print("Your response:")
+        lines = []
+        while True:
+            line = input()
+            if line:
+                lines.append(line)
+            else:
+                break
+        content = '\n'.join(lines)
+        resp = {
+            "role": "assistant",
+            "content": content
+        }
+
+        self.log(resp)
+        return ChatCompletionMessage(**resp)
+
+    @weave.op()
+    def multi_responses(
+        self, messages: Iterable[ChatCompletionMessageParam], n=1
+    ) -> list[ChatCompletionMessage]:
+        resp = self.response(messages)
+
+        return [resp for _ in messages]

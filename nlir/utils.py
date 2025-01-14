@@ -19,6 +19,14 @@ def get_agent(cfg_agent: DictConfig):
             else:
                 client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
             return client.chat.complete
+        elif cfg_agent.provider == "anthropic":
+            import anthropic
+
+            api_key = os.environ["ANTHROPIC_API_KEY"]
+            client = anthropic.Anthropic(
+                api_key=os.environ["ANTHROPIC_API_KEY"],
+            )
+            return client.messages.create
         elif cfg_agent.provider == "openai":
             project=os.environ["OPENAI_PROJECT"]
             api_key=os.environ["OPENAI_API_KEY"]
@@ -27,17 +35,17 @@ def get_agent(cfg_agent: DictConfig):
             if cfg_agent.provider == "xai":
                 api_key=os.environ["XAI_API_KEY"]
                 base_url="https://api.x.ai/v1"
-            elif cfg_agent.provider == "deepseek": 
+            elif cfg_agent.provider == "deepseek":
                 api_key=os.environ["DEEPSEEK_API_KEY"]
                 base_url="https://api.deepseek.com"
             else:
                 raise RuntimeError("Unknown provider")
-            
+
             client = oai.OpenAI(api_key=api_key, base_url=base_url)
 
-    return client.chat.completions.create    
-        
-    
+    return client.chat.completions.create
+
+
 
 
 
