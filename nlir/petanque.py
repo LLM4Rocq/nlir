@@ -286,8 +286,7 @@ class TemplateEnv(Env):
     """
 
     def __init__(
-        self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool
-    ):
+        self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool):
         super().__init__(pet, workspace, file, thm, context)
         self.initial_state = self.pet.start(self.path, self.thm)
         self.thm_code = pp_goals(self.pet.goals(self.initial_state))
@@ -445,8 +444,12 @@ class TranslateEnv(Env):
     Petanque environment used for translating.
     """
 
-    def __init__(self, pet: Pytanque, workspace: str, file: str, thm):
+    def __init__(self, pet: Pytanque, workspace: str, file: str, thm:str):
         super().__init__(pet, workspace, file, thm[0], False)
+        file = open(self.path, "w")
+        file.close()
+        self.pos = (0, 0)
+        self.state = self.pet.get_state(self.path, self.pos)
         self.thm_code = thm[1]
         self.finished = False
         self.prev_unsuccess = ""
@@ -454,6 +457,8 @@ class TranslateEnv(Env):
 
     def deepcopy(self):
         new = super().deepcopy()
+        new.pos = copy.deepcopy(self.pos)
+        new.state = copy.deepcopy(self.state)
         new.thm_code = copy.deepcopy(self.thm_code)
         new.finished = copy.deepcopy(self.finished)
         new.prev_unsuccess = copy.deepcopy(self.prev_unsuccess)
@@ -466,7 +471,7 @@ class TranslateEnv(Env):
         if message.content:
             # Regular expression to match the theorem
             theorem_pattern = re.compile(
-                r"```(?:coq)*\s(?P<body>(?:[\S\s](?!Proof))*)\sProof\.(?:[\S\s](?!```))*\s```",
+                r"```(?:coq)*\s(?P<body>(?:[\S\s](?!Proof)(?!```))*)\sProof\.(?:[\S\s](?!```))*\s```",
                 re.DOTALL
             )
 
@@ -474,18 +479,31 @@ class TranslateEnv(Env):
             theorems = theorem_pattern.finditer(message.content)
             theorems = [match.group('body') for match in theorems]
 
+            if not len(theorems):
+                theorems.append("")
+
             return theorems[-1] + "\nProof.\nAdmitted."
 
         else:
             return "admit."
 
-    def write(self, proof: str):
+    def write(self, thm: str):
         """
         Write the proof to the file.
         """
 
+        row, col = self.pos
+        for char in thm:
+            if char=='\n':
+                row += 1
+                col = 0
+            else:
+                col += 1
+
         with open(self.path, 'w') as file:
-            file.write(proof)
+            file.write(thm)
+
+        self.pos = (row, col)
 
     def exec(self, message: ChatCompletionMessage):
         """
@@ -494,16 +512,17 @@ class TranslateEnv(Env):
 
         self.n_interactions += 1
         thm = self.parse(message)
-        self.write(thm)
+        # self.write(thm)
         self.proof = [thm]  # For better end message of the search algorithm
 
         try:
-            self.pet.start(self.path, self.thm)
+            self.state = self.pet.run_tac(self.state, thm)
             self.finished = True
+            self.write(thm)
         except PetanqueError as err:
             unsuccess = translate_prompt.make_unsuccess.format(code=thm, message=err.message)
+            self.proof = [thm + "\n\n" + err.message]
             self.prev_unsuccess += unsuccess
-            self.finished = False
 
     @property
     def proof_finished(self) -> bool:
@@ -536,7 +555,6 @@ class TranslateEnv(Env):
                 thm_isabelle = self.thm_code["isabelle"],
                 previous_unsuccessful = self.prev_unsuccess
             )
-
 
         return [
             {"role": "system", "content": context},
