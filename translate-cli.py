@@ -10,13 +10,13 @@ import sys
 from tqdm import tqdm
 from functools import partial
 
-from nlir.agent import GPT
+from nlir.agent import Human, GPT
 from nlir.petanque import TranslateEnv
 from nlir.search import naive_search, beam_search
 from nlir.extract import extract_theorems
 
 @hydra.main(version_base=None, config_path="conf", config_name="translate_config")
-def translate(cfg: DictConfig):
+def translate(cfg: DictConfig) -> float :
     """
     Translates one or a complete set of theorems to Coq in several try.
 
@@ -72,7 +72,10 @@ def translate(cfg: DictConfig):
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
-        agent = GPT(str(log_path), cfg.agent)
+        if cfg.human:
+            agent = Human(str(log_path))
+        else:
+            agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem)
@@ -83,7 +86,7 @@ def translate(cfg: DictConfig):
         print(f"\n\n---\nSuccess: {status.success}")
         print("---\n\n")
 
-        sys.exit(0)
+        return status.success
 
     # Translates all theorems
     dt = datetime.now().strftime("%y%m%d_%H%M%S")
@@ -110,7 +113,10 @@ def translate(cfg: DictConfig):
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
-        agent = GPT(str(log_path), cfg.agent)
+        if cfg.human:
+            agent = Human(str(log_path))
+        else:
+            agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem)
