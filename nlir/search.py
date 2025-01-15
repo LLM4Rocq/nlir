@@ -17,15 +17,14 @@ class Status:
     success: bool
     proof: str
 
-
 def naive_name(call):
     return f"Naive-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
 
 
 @weave.op(call_display_name=naive_name)
 def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Status:
-    response = agent.response(env.prompt)  # Initial step
     for step in range(max_steps):
+        response = agent.response(env.prompt)
         env.exec(response)
         proof = " ".join(env.proof)
         print(f"\nNaive search, step {step}:\n{proof}")
@@ -45,7 +44,6 @@ def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Sta
                 if len(env.holes) > max_steps - step:
                     # number of remaining steps is too big
                     break
-            response = agent.response(env_prompt)
 
     if not env.proof_finished:
         proof = " ".join(env.proof)
