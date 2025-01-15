@@ -18,6 +18,8 @@ openai = "^1.50.2"
 pytanque = {git = "https://github.com/LLM4Coq/pytanque.git"}
 numpy = "^2.1.2"
 weave = "^0.51.28"
+anthropic = "^0.43.0"
+mistral = "^19.0.0"
 
 
 [build-system]
