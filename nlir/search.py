@@ -18,8 +18,8 @@ class Status:
 
 @weave.op()
 def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
-    response = agent.response(env.prompt)  # Initial step
     for step in range(max_steps):
+        response = agent.response(env.prompt)
         env.exec(response)
         proof = " ".join(env.proof)
         print(f"\nNaive search, step {step}:\n{proof}")
@@ -34,7 +34,6 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
             if len(str(env.prompt)) > 100000:
                 # prompt is too big!
                 break
-            response = agent.response(env.prompt)
 
     if not env.proof_finished:
         proof = " ".join(env.proof)
@@ -87,7 +86,7 @@ def parse_comparison(
             to_parse = message.content
         match = re.findall(r"([0-9]+)(,|$|\n)", to_parse, re.DOTALL)
         parsed = [int(el[0]) for el in match]
-        return parsed  
+        return parsed
     return []
 
 @weave.op()
@@ -129,7 +128,7 @@ def expand_beam(
                         # avoid adding duplicate proofs
                         continue
                 except RuntimeError:
-                    continue 
+                    continue
             new_beam.append(env_copy)
     return new_beam
 
@@ -159,7 +158,7 @@ def beam_search(
                     proof = " ".join(new_beam[0].proof)
                     return Status(step, True, proof)
 
-            else: 
+            else:
                 # sort new_beam
                 beam = sort_beam(new_beam)
                 beam = beam[:beam_size]
