@@ -53,6 +53,15 @@ And here is the code of the theorem in Isabelle:
 To help you, describe each step of the Lean and Isabelle versions using the natural language description,
 so you can use those steps when writing the theorem in Coq.
 
+If you need to work with complex numbers, numerous libraries are available.
+However, you should always use Coquelicot.Coquelicot, as demonstrated below:
+
+```coq
+Require Import Coquelicot.Coquelicot
+```
+
+If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
+
 It is important to get your response in the right format,
 so make sure that your complete response (including library imports) is enclosed in a markdown coq block (```coq *coq code* ```).
 
@@ -79,6 +88,15 @@ And here is the code of the theorem in Isabelle:
 
 To help you, describe each step of the Lean and Isabelle versions using the natural language description,
 so you can use those steps when writing the theorem in Coq.
+
+If you need to work with complex numbers, numerous libraries are available.
+However, you should always use Coquelicot.Coquelicot, as demonstrated below:
+
+```coq
+Require Import Coquelicot.Coquelicot
+```
+
+If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
 
 It is important to get your response in the right format,
 so make sure that your complete response (including library imports) is enclosed in a markdown coq block (```coq *code* ```).
