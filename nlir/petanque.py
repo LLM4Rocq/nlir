@@ -8,6 +8,7 @@ from pytanque import Pytanque, State, Goal, PetanqueError
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .prompts import tactic_prompts, template_prompts
 import copy
+import weave
 
 
 def pp_goal(g: Goal) -> str:
@@ -78,7 +79,7 @@ def split_proof(
     raw = remove_comments(proof)  # remove comments
     tactics = [
         t
-        for a in re.split(r"(\{|\})", raw) # split braces
+        for a in re.split(r"(\{|\})", raw)  # split braces
         for b in re.split(r"(?<=\.)\s+(\++|\*+|\-+)", a)  # split proof in bullets
         for s in re.split(r"(?<=\.)\s+", b)  # split bullets in tactics
         if (t := s.strip())  # remove empty steps
@@ -95,7 +96,7 @@ def get_context(doc: str, thm: str) -> str:
     pattern = r"Proof\.(.*?)(Qed|Admitted|Abort)\."
     cleaned_text = re.sub(pattern, "", doc, flags=re.DOTALL)
     # Replace multiple newlines with a single newline
-    cleaned_text = re.sub(r'\n+', '\n', cleaned_text)
+    cleaned_text = re.sub(r"\n+", "\n", cleaned_text)
     lines = cleaned_text.split("\n")
     for i, l in enumerate(lines):
         if thm in l:
@@ -109,7 +110,7 @@ class Env(ABC):
     `exec` and `output` need to be defined for `search`
     """
 
-    def __init__(self, pet, workspace, file, thm, context):
+    def __init__(self, pet, workspace, file, thm, context, verbose=False):
         self.pet = pet
         self.workspace = workspace
         self.file = file
@@ -119,9 +120,10 @@ class Env(ABC):
         self.initial_state: State = self.pet.start(self.path, thm)
         self.thm_code = pp_goals(self.pet.goals(self.initial_state))
         self.n_interactions = 0
+        self.verbose = verbose
         if context:
-            with open(self.path, "r") as file:
-                self.context = get_context(file.read(), thm)
+            with open(self.path, "r") as read_file:
+                self.context = get_context(read_file.read(), thm)
         else:
             self.context = None
 
@@ -162,7 +164,7 @@ class Env(ABC):
 
     @property
     @abstractmethod
-    def prompt_for_comparison(self) -> str:
+    def info_for_comparison(self) -> str:
         pass
 
 
@@ -189,6 +191,15 @@ class TacticEnv(Env):
         else:
             pattern = r"/step\b(.*)"
             steps = [match.group(1) for match in re.finditer(pattern, message.content)]
+            if self.verbose:
+                print(
+                    "parsed tactics:",
+                    [
+                        tac
+                        for step in steps
+                        for tac in split_proof(step, add_delimiter=False)
+                    ],
+                )
             return [
                 tac for step in steps for tac in split_proof(step, add_delimiter=False)
             ]
@@ -216,13 +227,19 @@ class TacticEnv(Env):
         self.n_interactions += 1
         tactics = self.parse(message)
         for tac in tactics:
+            if self.verbose:
+                print("tactic:", tac)
             try:
                 self.state = self.pet.run_tac(self.state, tac)
                 self.previous_unsuccessful = []
                 self.proof.append(tac)
+                if self.verbose:
+                    print("success")
             except PetanqueError as err:
-                # Add error message to the prompt ?
-                self.previous_unsuccessful.append(tac)
+                # Add error message to the prompt
+                if self.verbose:
+                    print("error:", err.message)
+                self.previous_unsuccessful.append(str(tac) + str(err.message))
                 break
 
     @property
@@ -230,24 +247,50 @@ class TacticEnv(Env):
         """
         Build the tactic prompt from the current goal.
         """
-        context = tactic_prompts.system_prompt
+        syst_prompt = tactic_prompts.system_prompt
+        if self.context:
+            decorated_context = tactic_prompts.decorated_context.format(
+                context=self.context
+            )
+        else:
+            decorated_context = ""
         content = tactic_prompts.user_prompt.format(
             n_interactions=self.n_interactions,
+            decorated_context=decorated_context,
             theorem_code=self.thm_code,
             proof_steps=self.proof,
             previous_unsuccessful="\n".join(self.previous_unsuccessful),
             current_goal=pp_goals(self.pet.goals(self.state)),
         )
+        if self.verbose:
+            print(
+                tactic_prompts.display_user_prompt.format(
+                    n_interactions=self.n_interactions,
+                    theorem_code=self.thm_code,
+                    proof_steps=self.proof,
+                    previous_unsuccessful="\n".join(self.previous_unsuccessful),
+                    current_goal=pp_goals(self.pet.goals(self.state)),
+                )
+            )
         return [
-            {"role": "system", "content": context},
+            {"role": "system", "content": syst_prompt},
             {"role": "user", "content": content},
         ]
 
     @property
-    def prompt_for_comparison(self) -> str:
+    def info_for_comparison(self) -> str:
         """
         Build the string containing the informations to be included in the comparison prompt.
         """
+        if self.verbose:
+            print(
+                tactic_prompts.display_prompt_for_comparison.format(
+                    current_goal=pp_goals(self.pet.goals(self.state)),
+                    proof_steps=self.proof,
+                    n_interactions=self.n_interactions,
+                    previous_unsuccessful="\n".join(self.previous_unsuccessful),
+                )
+            )
         return tactic_prompts.prompt_for_comparison.format(
             current_goal=pp_goals(self.pet.goals(self.state)),
             proof_steps=self.proof,
@@ -343,7 +386,7 @@ class TemplateEnv(Env):
                 return fix(next_state, tactics[1:], False)
 
             except PetanqueError as err:
-                #print("xxxx", err.message)
+                # print("xxxx", err.message)
                 if drop:  # still invalid, drop tactic.
                     return fix(state, tactics[1:], True)
                 if m := re.match(
@@ -389,7 +432,7 @@ class TemplateEnv(Env):
     def proof_finished(self) -> bool:
         if self.holes:
             return False
-        return self.check_proof() 
+        return self.check_proof()
 
     def exec(self, message: ChatCompletionMessage):
         """
@@ -416,24 +459,44 @@ class TemplateEnv(Env):
         if self.holes:
             h = self.holes[0]
             if self.context:
-                context = template_prompts.context.format(context=self.context)
+                decorated_context = template_prompts.decorated_context.format(
+                    context=self.context
+                )
             else:
-                context = ""
+                decorated_context = ""
             content = template_prompts.user_prompt.format(
-                context=context,
+                decorated_context=decorated_context,
                 theorem_name=self.thm,
                 theorem_code=self.thm_code,
                 goal=pp_goals(self.pet.goals(h.state)),
             )
-            return [{"role": "user", "content": content}]
+            if self.verbose:
+                print(
+                    template_prompts.display_user_prompt.format(
+                        theorem_name=self.thm,
+                        theorem_code=self.thm_code,
+                        goal=pp_goals(self.pet.goals(h.state)),
+                    )
+                )
+            return [
+                {"role": "system", "content": template_prompts.system_prompt},
+                {"role": "user", "content": content},
+            ]
         else:
             raise RuntimeError("No more holes")
 
     @property
-    def prompt_for_comparison(self) -> str:
+    def info_for_comparison(self) -> str:
         """
         Build the string containing the informations to be included in the comparison prompt.
         """
+        if self.verbose:
+            print(
+                template_prompts.display_prompt_for_comparison.format(
+                    template_proof=self.template.tactics,
+                    n_interactions=self.n_interactions,
+                )
+            )
         return template_prompts.prompt_for_comparison.format(
             template_proof=self.template.tactics,
             n_interactions=self.n_interactions,

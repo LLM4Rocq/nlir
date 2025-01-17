@@ -8,7 +8,9 @@ from pathlib import Path
 from omegaconf import DictConfig
 import concurrent.futures
 import weave
-from .utils import get_agent
+from weave.trace.util import ContextAwareThreadPoolExecutor
+from .utils import get_agent, allow_mutli_responses
+
 
 class LLM(ABC):
     """
@@ -18,6 +20,9 @@ class LLM(ABC):
 
     def __init__(self, log_file: str):
         self.log_file = log_file
+        # Delete the log file if it exists
+        if os.path.exists(self.log_file):
+            os.remove(self.log_file)
 
     def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
         with open(self.log_file, "a") as file:
@@ -25,7 +30,7 @@ class LLM(ABC):
                 case ChatCompletionMessage():
                     print(message.model_dump_json(), file=file)
                 case _:
-                    print(json.dumps(message), file=file)
+                    print(json.dumps(message, ensure_ascii=False), file=file)
 
     @abstractmethod
     def response(
@@ -61,6 +66,7 @@ class GPT(LLM):
         self.model_id = cfg_agent.model_id
         self.temperature = cfg_agent.temperature
         self.provider = cfg_agent.provider
+        self.allow_multi_responses = allow_mutli_responses(self.provider)
         self.chat_complete = get_agent(cfg_agent)
 
     @weave.op()
@@ -68,15 +74,30 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
         list(map(self.log, messages))
-        resp = (
-            self.chat_complete(
-                model=self.model_id, messages=messages, temperature=self.temperature
+        if self.provider == "anthropic":
+            resp = (
+                self.chat_complete(
+                    max_tokens=2048,
+                    messages=[messages[1]],
+                    system=messages[0]["content"],
+                    model=self.model_id,
+                    temperature=self.temperature,
+                )
+                .content[0]
+                .text
             )
-            .choices[0]
-            .message
-        )
+        else:
+            resp = (
+                self.chat_complete(
+                    model=self.model_id, messages=messages, temperature=self.temperature
+                )
+                .choices[0]
+                .message
+            )
         if self.provider == "mistral":
-            resp = ChatCompletionMessage(**resp.dict())    
+            resp = ChatCompletionMessage(**resp.dict())
+        elif self.provider == "anthropic":
+            resp = ChatCompletionMessage(content=resp, role="assistant")
         self.log(resp)
         return resp
 
@@ -85,21 +106,26 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        if self.provider == "deepseek":
-            with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-                these_futures = [executor.submit(self.response, messages) for _ in range(n)]
+        if self.allow_multi_responses:
+            resp = self.chat_complete(
+                model=self.model_id,
+                messages=messages,
+                temperature=self.temperature,
+                n=n,
+            )
+        else:
+            # provider not supporting multi response
+            with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
+                these_futures = [
+                    executor.submit(self.response, messages) for _ in range(n)
+                ]
                 concurrent.futures.wait(these_futures)
                 resp = [future.result() for future in these_futures]
-
-        else:
-            resp = self.chat_complete(
-            model=self.model_id, messages=messages, temperature=self.temperature, n=n
-        )
         if self.provider == "mistral":
             for c in resp.choices:
                 self.log(c.message.dict())
             return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
-        elif self.provider == "deepseek":
+        elif not self.allow_multi_responses:
             return resp
         else:
             for c in resp.choices:
@@ -125,6 +151,7 @@ class Ghost(LLM):
     def __iter__(self) -> Iterable[ChatCompletionMessage]:
         yield from self.messages
 
+    @weave.op()
     def response(
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
@@ -133,11 +160,18 @@ class Ghost(LLM):
         self.log(resp)
         return ChatCompletionMessage(**resp)
 
+    @weave.op()
     def multi_responses(
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        resp = [next(self.messages) for i in range(n)]
+        # resp = [next(self.messages) for i in range(n)]
+        resp = []
+        for i in range(n):
+            try:
+                resp.append(next(self.messages))
+            except StopIteration:
+                break
         for r in resp:
             self.log(r)
         return [ChatCompletionMessage(**r) for r in resp]

@@ -7,7 +7,7 @@ from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
 from nlir.agent import Ghost, GPT
 from nlir.petanque import TacticEnv, TemplateEnv
-from nlir.search import naive_search, beam_search
+from nlir.search import naive_search, beam_search, Status
 from pathlib import Path
 from datetime import datetime
 from omegaconf import DictConfig
@@ -23,7 +23,7 @@ def check_benchmark(
     for thms in cfg.benchmark:
         file_path = Path(wk_path, thms.file).absolute()
         for thm in thms.theorems:
-            if counter in range(cfg.start_theorem,cfg.end_theorem):
+            if counter in range(cfg.start_theorem, cfg.end_theorem):
                 try:
                     pet.start(str(file_path), thm)
                     theorems.append((file_path, thm))
@@ -31,7 +31,9 @@ def check_benchmark(
                     errors.append(f"- File {thms.file} {thm}: {err.message}")
             counter += 1
     if not errors:
-        print(f"Benchmarking {len(theorems)} theorems starting from {cfg.start_theorem} in {len(cfg.benchmark)} files")
+        print(
+            f"Benchmarking {len(theorems)} theorems starting from {cfg.start_theorem} in {len(cfg.benchmark)} files"
+        )
     else:
         print(f"Config contains the following errors:", file=sys.stderr)
         print("\n".join(errors), file=sys.stderr)
@@ -45,12 +47,14 @@ def main(cfg: DictConfig):
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
     pet.connect()
     pet.set_workspace(False, str(wk_path))
+    is_template = False
 
     match cfg.search.kind:
         case "tactics":
             env_cls = TacticEnv
         case "template":
             env_cls = TemplateEnv
+            is_template = True
         case _:
             raise RuntimeError(
                 "search.kind config should be one of [tactics, template]"
@@ -58,17 +62,22 @@ def main(cfg: DictConfig):
 
     match cfg.search.mode:
         case "naive":
-            search = naive_search
+            search = partial(naive_search, is_template=is_template)
         case "beam":
             search = partial(
                 beam_search,
                 beam_size=cfg.search.beam_size,
                 n_reponses=cfg.search.n_responses,
+                is_template=is_template,
             )
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
     if cfg.theorem and cfg.file:
+        if cfg.weave:
+            model_id = cfg.agent.model_id
+            name_expe = f"{model_id.split('/')[-1]}:{cfg.file}"
+            weave.init(name_expe)
         # Only prove thm from file (ignore benchmark)
         dt = datetime.now().strftime("%y%m%d-%H%M%S")
         log_path = Path(cfg.log_dir, f"{cfg.file}:{cfg.theorem}_{dt}.jsonl").absolute()
@@ -88,7 +97,10 @@ def main(cfg: DictConfig):
         )
 
         print(f"Try to prove {cfg.theorem} from {cfg.file}")
-        status = search(agent, env, cfg.search.max_steps)
+        with weave.attributes(
+            {"file": cfg.file, "thm": cfg.theorem, "kind": cfg.search.kind}
+        ):
+            status = search(agent, env, cfg.search.max_steps)
         print(f"\n\n--- Success: {status.success} ---")
         print(f"Proof: {status.proof}")
         print("---\n\n")
@@ -100,22 +112,51 @@ def main(cfg: DictConfig):
             model_id = cfg.agent.model_id
             name_expe = f"{model_id.split('/')[-1]}:{cfg.benchmark[0].file}"
             weave.init(name_expe)
-        log_dir = HydraConfig.get().runtime.output_dir
+        if cfg.log_dir:
+            log_dir = cfg.log_dir
+        else:
+            log_dir = HydraConfig.get().runtime.output_dir
 
         results = {"names": [], "success": [], "steps": []}
         theorems = check_benchmark(pet, wk_path, cfg)
-        res_path = Path(log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}.json")
+        res_path = Path(
+            log_dir, f"eval_results_{cfg.start_theorem}_{len(theorems)}.json"
+        )
+
+        if cfg.replay:
+            path_folder = Path(cfg.replay)
+            res_path = Path(
+                path_folder,
+                f"eval_results_{cfg.start_theorem}_{len(theorems)}_replay.json",
+            )
 
         for file_path, thm in theorems:
+            missing_proof = False
             print(f"\n\nTrying to prove {thm} from {file_path.stem}")
             env = env_cls(pet, str(wk_path), str(file_path), thm, cfg.petanque.context)
-            log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
-            agent = GPT(
-                str(log_path),
-                cfg.agent,
-            )
-            with weave.attributes({"file": file_path.stem, "thm": thm}):
-                status = search(agent, env, cfg.search.max_steps)
+
+            if cfg.replay:
+                log_path = Path(path_folder, f"{file_path.stem}:{thm}.jsonl").absolute()
+                if log_path.exists():
+                    agent = Ghost(log_path.resolve())
+                else:
+                    missing_proof = True
+            else:
+                log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
+                agent = GPT(
+                    str(log_path),
+                    cfg.agent,
+                )
+            with weave.attributes(
+                {"file": file_path.stem, "thm": thm, "kind": cfg.search.kind}
+            ):
+                if missing_proof:
+                    status = Status(1001, False, "Missing proof")
+                else:
+                    try:
+                        status = search(agent, env, cfg.search.max_steps)
+                    except StopIteration:
+                        status = Status(1002, False, "conversation stopped")
             results["names"].append(f"{env.file}:{env.thm}")
             results["success"].append(status.success)
             results["steps"].append(status.steps)

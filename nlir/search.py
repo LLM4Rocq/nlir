@@ -5,10 +5,11 @@ from typing import List
 import re
 from typing import Iterable
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
-from .prompts import comparison_prompts
+from .prompts import comparison_prompts, tactic_prompts, template_prompts
 from functools import partial
 from ast import literal_eval
 import weave
+
 
 @dataclass
 class Status:
@@ -16,8 +17,13 @@ class Status:
     success: bool
     proof: str
 
-@weave.op()
-def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
+
+def naive_name(call):
+    return f"Naive-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
+
+
+@weave.op(call_display_name=naive_name)
+def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Status:
     response = agent.response(env.prompt)  # Initial step
     for step in range(max_steps):
         env.exec(response)
@@ -31,10 +37,15 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
                 agent.log({"role": "user", "content": f"Failed Proof: {proof}"})
                 return Status(step, False, proof)
         else:
-            if len(str(env.prompt)) > 100000:
+            env_prompt = env.prompt
+            if len(str(env_prompt)) > 100000:
                 # prompt is too big!
                 break
-            response = agent.response(env.prompt)
+            elif is_template:
+                if len(env.holes) > max_steps - step:
+                    # number of remaining steps is too big
+                    break
+            response = agent.response(env_prompt)
 
     if not env.proof_finished:
         proof = " ".join(env.proof)
@@ -50,13 +61,16 @@ def create_comparison_prompt(
     """
     Build the comparison prompt from the list of environments.
     """
-    system_prompt = comparison_prompts.comparison_system_prompt
+    if list_env[0].__class__.__name__ == "TacticEnv":
+        system_prompt = tactic_prompts.comparison_system_prompt
+    else:
+        system_prompt = template_prompts.comparison_system_prompt
     intro = comparison_prompts.user_prompt.format(
         theorem_code=list_env[0].thm_code,
     )
     attempts = "\n\n".join(
         [
-            f"Here is the {i}th attempt:\n\n{env.prompt_for_comparison}"
+            f"- Attempt {i}:\n\n{env.info_for_comparison}"
             for i, env in enumerate(list_env)
         ]
     )
@@ -67,8 +81,8 @@ def create_comparison_prompt(
     ]
 
 
-def parse_comparison(
-    message: ChatCompletionMessage) -> List[int]:
+@weave.op()
+def parse_comparison(message: ChatCompletionMessage) -> List[int]:
     if message.content:
         match = re.match(
             r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", message.content, re.DOTALL
@@ -87,8 +101,9 @@ def parse_comparison(
             to_parse = message.content
         match = re.findall(r"([0-9]+)(,|$|\n)", to_parse, re.DOTALL)
         parsed = [int(el[0]) for el in match]
-        return parsed  
+        return parsed
     return []
+
 
 @weave.op()
 def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
@@ -104,9 +119,14 @@ def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
 def sort_holes(new_beam: list[TemplateEnv]) -> list[TemplateEnv]:
     return sorted(new_beam, key=lambda x: len(x.holes))
 
+
 @weave.op()
 def expand_beam(
-    beam: list[Env], agent: LLM, n_reponses: int
+    beam: list[Env],
+    agent: LLM,
+    n_reponses: int,
+    remaining_steps: int,
+    is_template: bool,
 ) -> list[Env]:
     new_beam = []
     for env in beam:
@@ -128,13 +148,19 @@ def expand_beam(
                     elif env_copy.proof in [e.proof for e in new_beam]:
                         # avoid adding duplicate proofs
                         continue
+                    elif is_template:
+                        if len(env_copy.holes) > remaining_steps:
+                            # avoid adding proofs with too many holes
+                            continue
                 except RuntimeError:
-                    continue 
+                    continue
             new_beam.append(env_copy)
     return new_beam
 
+
 def bs_name(call):
-    return f"BS-{call.attributes['thm']}-{call.attributes['file']}"
+    return f"BS-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
+
 
 @weave.op(call_display_name=bs_name)
 def beam_search(
@@ -143,23 +169,25 @@ def beam_search(
     max_steps: int,
     beam_size: int,
     n_reponses: int,
+    is_template: bool,
     sorting_holes=False,
 ) -> Status:
     sort_beam = partial(sort_LLM, agent=agent)
-    if sorting_holes:
+    if sorting_holes and is_template:
         sort_beam = sort_holes
     beam = [env]
     for step in range(max_steps):
         print(f"\nBeam search, step {step}:\n")
         # expand bean
-        new_beam = expand_beam(beam, agent, n_reponses)
+        new_beam = expand_beam(beam, agent, n_reponses, max_steps - step, is_template)
         if new_beam:
             if len(new_beam) <= beam_size:
                 if new_beam[0].proof_finished:
                     proof = " ".join(new_beam[0].proof)
                     return Status(step, True, proof)
-
-            else: 
+                else:
+                    beam = new_beam
+            else:
                 # sort new_beam
                 beam = sort_beam(new_beam)
                 beam = beam[:beam_size]
@@ -173,7 +201,7 @@ def beam_search(
             )
             return Status(step, False, proof)
 
-    #beam = sort_holes(beam)
+    # beam = sort_holes(beam)
     proof = " ".join(beam[0].proof)
     agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
     return Status(max_steps, False, proof)
