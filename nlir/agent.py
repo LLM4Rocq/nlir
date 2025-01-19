@@ -150,6 +150,7 @@ class Ghost(LLM):
         logs = []
         with open(source_file, "r") as file:
             for line in file:
+                line = line.encode("utf-8")
                 logs.append(json.loads(line))
         self.messages = filter(lambda m: m["role"] == "assistant", logs)
 
