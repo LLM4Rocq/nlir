@@ -230,7 +230,7 @@ class TacticEnv(Env):
             if self.verbose:
                 print("tactic:", tac)
             try:
-                self.state = self.pet.run_tac(self.state, tac)
+                self.state = self.pet.run_tac(self.state, tac, timeout=10)
                 self.previous_unsuccessful = []
                 self.proof.append(tac)
                 if self.verbose:
@@ -376,7 +376,7 @@ class TemplateEnv(Env):
                 # Replace by admit and continue to fix the end of the template
                 tac = "admit."
             try:
-                next_state = self.pet.run_tac(state, tac)
+                next_state = self.pet.run_tac(self.state, tac, timeout=10)
                 if tac in ["admit.", "give_up."]:
                     h = Template(state)
                     template.proof.append(h)
