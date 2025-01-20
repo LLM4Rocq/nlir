@@ -45,7 +45,7 @@ hydra:
 
 defaults:
   - _self_
-  - agent: gpt-o1-mini
+  - agent: gpt-mini
   - benchmark: null
   - override hydra/job_logging: none
   - override hydra/hydra_logging: none
