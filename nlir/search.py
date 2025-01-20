@@ -41,7 +41,7 @@ def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Sta
                 # prompt is too big!
                 break
             elif is_template:
-                if len(env.holes) > max_steps - step:
+                if len(env.holes) > max_steps - 1 - step:
                     # number of remaining steps is too big
                     break
 
