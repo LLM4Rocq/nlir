@@ -362,7 +362,7 @@ class TemplateEnv(Env):
         holes = []
 
         def fix(
-            state: State, tactics: list[str], drop: bool
+            state: State, tactics: list[str], opened_par: int, drop: bool
         ) -> Tuple[Template, list[Template]]:
             if not tactics:
                 if not self.pet.goals(state):
@@ -376,50 +376,56 @@ class TemplateEnv(Env):
                 # Replace by admit and continue to fix the end of the template
                 tac = "admit."
             try:
-                next_state = self.pet.run_tac(self.state, tac, timeout=10)
+                next_state = self.pet.run_tac(state, tac, timeout=10)
                 if tac in ["admit.", "give_up."]:
                     h = Template(state)
                     template.proof.append(h)
                     holes.append(h)
+                elif tac == "{":
+                    opened_par += 1
+                elif tac == "}":
+                    if opened_par == 0:
+                        raise PetanqueError(-32003, 'Coq: The proof is not focused')
+                    opened_par -= 1
                 else:
                     template.proof.append(tac)
-                return fix(next_state, tactics[1:], False)
+                return fix(next_state, tactics[1:], opened_par, False)
 
             except PetanqueError as err:
                 # print("xxxx", err.message)
                 if drop:  # still invalid, drop tactic.
-                    return fix(state, tactics[1:], True)
+                    return fix(state, tactics[1:], opened_par, True)
                 if m := re.match(
                     r"Coq: \[Focus\] Wrong bullet (?:\++|\-+|\*+): Expecting (?P<bullet>\++|\-+|\*+)",
                     err.message,
                 ):  # refocus on correct bullet
-                    return fix(state, [m.group("bullet")] + tactics, False)
+                    return fix(state, [m.group("bullet")] + tactics, opened_par, False)
                 if m := re.match(
                     r"Coq: No such goal. Focus next goal with bullet (?P<bullet>\++|\-+|\*+)",
                     err.message,
                 ):  # refocus on correct bullet
-                    return fix(state, [m.group("bullet")] + tactics, False)
+                    return fix(state, [m.group("bullet")] + tactics, opened_par, False)
                 if re.match(
                     r"Coq: \[Focus\] Wrong bullet (?:\++|\-+|\*+): Current bullet (?:\++|\-+|\*+) is not finished.",
                     err.message,
                 ):  # close previous subgoal and retry.
-                    return fix(state, ["admit."] + tactics, False)
+                    return fix(state, ["admit."] + tactics, opened_par, False)
                 if re.match(
                     r"Coq: This proof is focused, but cannot be unfocused this way",
                     err.message,
                 ):  # close current goal and try to unfocus
-                    return fix(state, ["admit."] + tactics, False)
+                    return fix(state, ["admit."] + tactics, opened_par, False)
                 if re.match(
                     r"Coq: \[Focus\] Wrong bullet (?:\++|\-+|\*+): No more goals.",
                     err.message,
                 ):  # Drop bullet
-                    return fix(state, tactics[1:], True)
+                    return fix(state, tactics[1:], opened_par, True)
                 else:  # replace tac by admit and drop until next valid tactic.
-                    return fix(state, ["admit."] + tactics[1:], True)
+                    return fix(state, ["admit."] + tactics[1:], opened_par, True)
 
         tactics = split_proof(proof, add_delimiter=True)
         try:
-            return fix(state, tactics, False)
+            return fix(state, tactics, 0, False)
         except RecursionError:
             # Proof requires too many fixes (maybe it generates too many subgoals?)
             # Return a template with a single hole.
