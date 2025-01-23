@@ -626,12 +626,12 @@ class TranslateEnv(Env):
             )
 
         return [
-            {"role": "system", "content": context},
+            {"role": "user", "content": context},
             {"role": "user", "content": content},
         ]
 
     @property
-    def prompt_for_comparison(self) -> str:
+    def info_for_comparison(self) -> str:
         """
         Build the string containing the informations to be included in the comparison prompt.
         """

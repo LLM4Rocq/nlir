@@ -82,7 +82,7 @@ def translate(cfg: DictConfig) -> float :
 
         # Translate the theorem
         print(f"Try to translate {cfg.theorem} in {file_path}.")
-        status = search(agent, env, cfg.search.max_steps)
+        status = search(agent, env, cfg.search.max_steps, is_template=False)
         print(f"\n\n---\nSuccess: {status.success}")
         print("---\n\n")
 
@@ -123,7 +123,7 @@ def translate(cfg: DictConfig) -> float :
 
         # Translate the theorem
         with weave.attributes({"file": file_path, "thm": theorem[0]}):
-            status = search(agent, env, cfg.search.max_steps)
+            status = search(agent, env, cfg.search.max_steps, is_template=False)
 
         # Adding the result
         results["names"].append(f"{env.file}:{env.thm}")
@@ -153,7 +153,7 @@ def translate(cfg: DictConfig) -> float :
 
         # Translate the theorem
         with weave.attributes({"file": file_path, "thm": theorem[0]}):
-            status = search(agent, env, cfg.search.max_steps)
+            status = search(agent, env, cfg.search.max_steps, is_template=False)
 
         # Adding the result
         results["names"].append(f"{env.file}:{env.thm}")
