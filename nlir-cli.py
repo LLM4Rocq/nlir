@@ -120,6 +120,7 @@ def main(cfg: DictConfig):
             results["success"].append(status.success)
             results["steps"].append(status.steps)
             with open(res_path, "w") as rf:
+                print(f"Result writen in {res_path}")
                 json.dump(results, rf, indent=2)
 
         print(f"\n\n--- Summary ---")
