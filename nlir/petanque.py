@@ -538,23 +538,42 @@ class TranslateEnv(Env):
         """
 
         if message.content:
-            # Regular expression to match the theorem
-            theorem_pattern = re.compile(
-                r"```(?:coq)*\s(?P<body>(?:[\S\s](?!Proof)(?!```))*)\sProof\.(?:[\S\s](?!```))*\s```",
+
+            # Regular expression to match the coq code
+            coq_code_pattern = re.compile(
+                r"```(?:coq)?\s(?P<code>[\S\s]*?)\s```",
                 re.DOTALL
             )
 
-            # Find all matches of theorems
-            theorems = theorem_pattern.finditer(message.content)
+            # Find all coq code writen
+            coq_codes = coq_code_pattern.finditer(message.content)
+            coq_code = ""
+            for match in coq_codes:
+                coq_code += match.group('code') + "\n\n"
+
+            # Remove the comment
+            new_coq_code = coq_code + "\n"
+            while new_coq_code != coq_code:
+                coq_code = new_coq_code
+                new_coq_code = re.sub(r'\(\*([\s\S](?!\(\*))*?\*\)', '', coq_code)
+
+            # Remove the proof
+            theorem_pattern = re.compile(
+                r"(?P<body>[\s\S]*)Proof",
+                re.DOTALL
+            )
+            theorems = theorem_pattern.finditer(coq_code)
             theorems = [match.group('body') for match in theorems]
 
-            if not len(theorems):
-                theorems.append("")
+            if len(theorems):
+                theorem = theorems[-1]
+            else:
+                theorem = coq_code
 
-            return theorems[-1] + "\nProof.\nAdmitted."
+            return theorem + "\nProof.\n"
 
         else:
-            return "admit."
+            return ""
 
     def write(self, thm: str):
         """
