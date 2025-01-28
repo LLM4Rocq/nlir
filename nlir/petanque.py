@@ -513,11 +513,8 @@ class TranslateEnv(Env):
     Petanque environment used for translating.
     """
 
-    def __init__(self, pet: Pytanque, workspace: str, file: str, thm:str):
+    def __init__(self, pet: Pytanque, workspace: str, file: str, thm: Tuple[str, str]):
         super().__init__(pet, workspace, file, thm[0], False)
-        file = open(self.path, "w")
-        file.close()
-        self.pos = (0, 0)
         self.state = self.pet.get_state(self.path, self.pos)
         self.thm_code = thm[1]
         self.finished = False
@@ -526,7 +523,6 @@ class TranslateEnv(Env):
 
     def deepcopy(self):
         new = super().deepcopy()
-        new.pos = copy.deepcopy(self.pos)
         new.state = copy.deepcopy(self.state)
         new.thm_code = copy.deepcopy(self.thm_code)
         new.finished = copy.deepcopy(self.finished)
@@ -578,20 +574,12 @@ class TranslateEnv(Env):
     def write(self, thm: str):
         """
         Write the proof to the file.
-        """
 
-        row, col = self.pos
-        for char in thm:
-            if char=='\n':
-                row += 1
-                col = 0
-            else:
-                col += 1
+        /!\\ overide the previous content of the file /!\\
+        """
 
         with open(self.path, 'w') as file:
             file.write(thm)
-
-        self.pos = (row, col)
 
     def exec(self, message: ChatCompletionMessage):
         """
