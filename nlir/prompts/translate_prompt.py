@@ -24,10 +24,13 @@ Start by looking at the natural language description of the theorem to be transl
 Then, based on the Lean and Isabelle version of the theorem, try to write the theorem in Coq.
 Try to be as concise as possible, go straight to the point.
 Ideally, the Coq code should look like this:
-Theorem "theorem name".
-"body of theorem"
+
+```coq
+Theorem <theorem_name>
+    <theorem_body>.
 Proof.
 Admitted.
+```
 
 As you can see, you must not translate the proof, only the body of the theorem.
 The translation of proofs will be tackled later, don't bother with it now.
@@ -50,10 +53,12 @@ Here is the code of the theorem in Lean:
 And here is the code of the theorem in Isabelle:
 {thm_isabelle}
 
-To help you, describe each step of the Lean and Isabelle versions using the natural language description,
+### Indications
+
+- To help you, describe each step of the Lean and Isabelle versions using the natural language description,
 so you can use those steps when writing the theorem in Coq.
 
-If you need to work with complex numbers, numerous libraries are available.
+- If you need to work with complex numbers, numerous libraries are available.
 However, you should always use Coquelicot.Coquelicot, as demonstrated below:
 
 ```coq
@@ -62,10 +67,16 @@ Require Import Coquelicot.Coquelicot
 
 If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
 
-It is important to get your response in the right format,
-so make sure that your complete response (including library imports) is enclosed in a markdown coq block (```coq *coq code* ```).
+- If you use different types, like nat and R, or nat and Z,
+be extra careful about the expressions you write,
+make sure the types are the right ones for each term.
 
-Take a deep breath and walk me through the process step-by-step.
+### Final instructions
+
+It is important to get your response in the right format,
+so make sure that your complete response (including library imports) is enclosed in a markdown coq block (```coq <code> ```).
+
+Take a deep breath and walk me through the process of writing the translation in Coq step-by-step.
 """
 
 user_prompt = """
@@ -86,10 +97,12 @@ Here is the code of the theorem in Lean:
 And here is the code of the theorem in Isabelle:
 {thm_isabelle}
 
-To help you, describe each step of the Lean and Isabelle versions using the natural language description,
+### Indications
+
+- To help you, describe each step of the Lean and Isabelle versions using the natural language description,
 so you can use those steps when writing the theorem in Coq.
 
-If you need to work with complex numbers, numerous libraries are available.
+- If you need to work with complex numbers, numerous libraries are available.
 However, you should always use Coquelicot.Coquelicot, as demonstrated below:
 
 ```coq
@@ -98,21 +111,29 @@ Require Import Coquelicot.Coquelicot
 
 If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
 
-It is important to get your response in the right format,
-so make sure that your complete response (including library imports) is enclosed in a markdown coq block (```coq *code* ```).
+- If you use different types, like nat and R, or nat and Z,
+be extra careful about the expressions you write,
+make sure the types are the right ones for each term.
 
 ### Previous unsuccessful attempts
 
 Here are the previous unsuccessful translations attempts.
-These have all been tried before, DOT NOT TRY ANY OF THESE TRANSLATIONS, as you know they don't work.
-You should try something different.
+These have all been tried before,
+analyse your previous mistakes, don't do them again and try to correct them.
 
 {previous_unsuccessful}
+
+### Final instructions
+
+It is important to get your response in the right format,
+so make sure that your complete response (including library imports) is enclosed in a markdown coq block (```coq <code> ```).
 """
 
 make_unsuccess = """
 
+```coq
 {code}
+```
 
 with error message:
 {message}
