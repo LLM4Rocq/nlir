@@ -59,10 +59,13 @@ And here is the code of the theorem in Isabelle:
 so you can use those steps when writing the theorem in Coq.
 
 - If you need to work with complex numbers, numerous libraries are available.
-However, you should always use Coquelicot.Coquelicot, as demonstrated below:
+However, you should always use Reals and Coquelicot.Coquelicot, as demonstrated below.
 
 ```coq
-Require Import Coquelicot.Coquelicot
+Require Import Reals.
+Require Import Coquelicot.Coquelicot.
+
+Open Scope C_scope.
 ```
 
 If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
@@ -103,10 +106,13 @@ And here is the code of the theorem in Isabelle:
 so you can use those steps when writing the theorem in Coq.
 
 - If you need to work with complex numbers, numerous libraries are available.
-However, you should always use Coquelicot.Coquelicot, as demonstrated below:
+However, you should always use Reals and Coquelicot.Coquelicot, as demonstrated below:
 
 ```coq
-Require Import Coquelicot.Coquelicot
+Require Import Reals.
+Require Import Coquelicot.Coquelicot.
+
+Open Scope C_scope.
 ```
 
 If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
@@ -130,14 +136,12 @@ so make sure that your complete response (including library imports) is enclosed
 """
 
 make_unsuccess = """
-
 ```coq
 {code}
 ```
 
 with error message:
 {message}
-
 """
 
 prompt_for_comparison = """
