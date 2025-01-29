@@ -1,5 +1,6 @@
 workspace: "examples/small_miniF2F"
 human: false
+supervise: false
 theorem: null
 log_dir: "logs/translate"
 weave: false

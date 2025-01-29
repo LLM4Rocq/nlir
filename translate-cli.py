@@ -78,7 +78,7 @@ def translate(cfg: DictConfig) -> float :
             agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
-        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem)
+        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)
 
         # Translate the theorem
         print(f"Try to translate {cfg.theorem} in {file_path}.")
@@ -119,7 +119,7 @@ def translate(cfg: DictConfig) -> float :
             agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
-        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem)
+        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)
 
         # Translate the theorem
         with weave.attributes({"file": file_path, "thm": theorem[0]}):
@@ -149,7 +149,7 @@ def translate(cfg: DictConfig) -> float :
         agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
-        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem)
+        env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)
 
         # Translate the theorem
         with weave.attributes({"file": file_path, "thm": theorem[0]}):

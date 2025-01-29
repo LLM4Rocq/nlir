@@ -513,11 +513,14 @@ class TranslateEnv(Env):
     Petanque environment used for translating.
     """
 
-    def __init__(self, pet: Pytanque, workspace: str, file: str, thm: Tuple[str, str]):
+    def __init__(self, pet: Pytanque, workspace: str, file: str, thm: Tuple[str, str], supervise: bool):
         super().__init__(pet, workspace, file, thm[0], False)
-        self.state = self.pet.get_state(self.path, self.pos)
+        with open(self.path, "w") as file:
+            file.write("")
+        self.state = self.pet.get_state(self.path, (0, 0))
         self.thm_code = thm[1]
         self.finished = False
+        self.supervise = supervise
         self.prev_unsuccess = ""
         self.proof.append(self.thm)
 
@@ -525,6 +528,7 @@ class TranslateEnv(Env):
         new = super().deepcopy()
         new.state = copy.deepcopy(self.state)
         new.thm_code = copy.deepcopy(self.thm_code)
+        new.supervise = copy.deepcopy(self.supervise)
         new.finished = copy.deepcopy(self.finished)
         new.prev_unsuccess = copy.deepcopy(self.prev_unsuccess)
 
@@ -597,8 +601,13 @@ class TranslateEnv(Env):
             self.write(thm)
         except PetanqueError as err:
             unsuccess = translate_prompt.make_unsuccess.format(code=thm, message=err.message)
-            self.proof = [thm + "\n\n" + err.message]
-            self.prev_unsuccess += unsuccess
+            if self.supervise:
+                print(unsuccess, end="\n\n")
+                advice = "\n\nwith advice:\n" + input("Tell the error to the agent, you can also give advices:\n")
+            else:
+                advice = ""
+            self.proof = [unsuccess + advice ]
+            self.prev_unsuccess += unsuccess + advice + "\n\n"
 
     @property
     def proof_finished(self) -> bool:
