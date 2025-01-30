@@ -68,11 +68,26 @@ Require Import Coquelicot.Coquelicot.
 Open Scope C_scope.
 ```
 
-If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
+Remember that the imaginary number is called `Ci` in Coquelicot.Coquelicot.
 
 - If you use different types, like nat and R, or nat and Z,
 be extra careful about the expressions you write,
 make sure the types are the right ones for each term.
+Particularly, be careful with exposant of reals,
+when using the classic `^ : R -> nat -> R` the exposant is a natural number.
+If you don't want that, use `Rpower`.
+
+- If you want to use a floor function, you can use the `Int_part : R -> Z` function
+from the Reals library, or the `floor : R -> Z` function from Coquelicot.Coquelicot.
+
+- When computing a sum or product on a finite set,
+it is a good idea to represent the finite set as a list,
+however, you should make sure that the list doesn't contains duplicate elements.
+For this, you can use the `NoDup` function from the List library.
+Alternatively, you can use adequate types and functions from the Sets library.
+
+- If you want to state that an integer is prime,
+you can use the function `prime : Z -> Prop` from the ZArith library.
 
 ### Final instructions
 
@@ -106,7 +121,7 @@ And here is the code of the theorem in Isabelle:
 so you can use those steps when writing the theorem in Coq.
 
 - If you need to work with complex numbers, numerous libraries are available.
-However, you should always use Reals and Coquelicot.Coquelicot, as demonstrated below:
+However, you should always use Reals and Coquelicot.Coquelicot, as demonstrated below.
 
 ```coq
 Require Import Reals.
@@ -115,11 +130,26 @@ Require Import Coquelicot.Coquelicot.
 Open Scope C_scope.
 ```
 
-If you don't need to use complex numbers, you should not use Coquelicot.Coquelicot.
+Remember that the imaginary number is called `Ci` in Coquelicot.Coquelicot.
 
 - If you use different types, like nat and R, or nat and Z,
 be extra careful about the expressions you write,
 make sure the types are the right ones for each term.
+Particularly, be careful with exposant of reals,
+when using the classic `^ : R -> nat -> R` the exposant is a natural number.
+If you don't want that, use `Rpower`.
+
+- If you want to use a floor function, you can use the `Int_part : R -> Z` function
+from the Reals library, or the `floor : R -> Z` function from Coquelicot.Coquelicot.
+
+- When computing a sum or product on a finite set,
+it is a good idea to represent the finite set as a list,
+however, you should make sure that the list doesn't contains duplicate elements.
+For this, you can use the `NoDup` function from the List library.
+Alternatively, you can use adequate types and functions from the Sets library.
+
+- If you want to state that an integer is prime,
+you can use the function `prime : Z -> Prop` from the ZArith library.
 
 ### Previous unsuccessful attempts
 
