@@ -9,7 +9,12 @@ from omegaconf import DictConfig
 import concurrent.futures
 import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
-from .utils import get_agent, allow_mutli_responses
+
+# from .utils import get_agent, allow_mutli_responses
+
+import litellm
+
+from litellm.types.utils import ModelResponse
 
 
 class LLM(ABC):
@@ -51,7 +56,7 @@ class LLM(ABC):
         pass
 
 
-class GPT(LLM):
+class LiteLLM(LLM):
     """
     GPT based agent (OpenAI API)
     """
@@ -66,71 +71,39 @@ class GPT(LLM):
         self.model_id = cfg_agent.model_id
         self.temperature = cfg_agent.temperature
         self.provider = cfg_agent.provider
-        self.allow_multi_responses = allow_mutli_responses(self.provider)
-        self.chat_complete = get_agent(cfg_agent)
 
-    @weave.op()
     def response(
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
         list(map(self.log, messages))
-        if self.provider == "anthropic":
-            resp = (
-                self.chat_complete(
-                    max_tokens=2048,
-                    messages=[messages[1]],
-                    system=messages[0]["content"],
-                    model=self.model_id,
-                    temperature=self.temperature,
-                )
-                .content[0]
-                .text
-            )
-        else:
-            resp = (
-                self.chat_complete(
-                    model=self.model_id, messages=messages, temperature=self.temperature
-                )
-                .choices[0]
-                .message
-            )
-        if self.provider == "mistral":
-            resp = ChatCompletionMessage(**resp.dict())
-        elif self.provider == "anthropic":
-            resp = ChatCompletionMessage(content=resp, role="assistant")
-        self.log(resp)
-        return resp
+        resp = litellm.completion(
+            model=self.model_id,
+            messages=messages,  # pyright: ignore
+            temperature=self.temperature,
+        )
+        return resp.choices[0].message  # pyright: ignore
 
-    @weave.op()
     def multi_responses(
         self, messages: Iterable[ChatCompletionMessageParam], n=1
     ) -> list[ChatCompletionMessage]:
         list(map(self.log, messages))
-        if self.allow_multi_responses:
-            resp = self.chat_complete(
+
+        try:
+            resp = litellm.completion(
                 model=self.model_id,
-                messages=messages,
+                messages=messages,  # pyright: ignore
                 temperature=self.temperature,
                 n=n,
             )
-        else:
-            # provider not supporting multi response
+            return [m.message for m in resp.choices]  # pyright: ignore
+        except Exception as e:
             with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
                 these_futures = [
                     executor.submit(self.response, messages) for _ in range(n)
                 ]
                 concurrent.futures.wait(these_futures)
                 resp = [future.result() for future in these_futures]
-        if self.provider == "mistral":
-            for c in resp.choices:
-                self.log(c.message.dict())
-            return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
-        elif not self.allow_multi_responses:
-            return resp
-        else:
-            for c in resp.choices:
-                self.log(c.message)
-            return [c.message for c in resp.choices]
+                return resp
 
 
 class Ghost(LLM):

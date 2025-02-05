@@ -5,7 +5,7 @@ import json
 import numpy as np
 from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
-from nlir.agent import Ghost, GPT
+from nlir.agent import Ghost, LiteLLM
 from nlir.petanque import TacticEnv, TemplateEnv
 from nlir.search import naive_search, beam_search, Status
 from pathlib import Path
@@ -87,7 +87,7 @@ def main(cfg: DictConfig):
             agent = Ghost(source_path.resolve())
         else:
             log_path.parent.mkdir(parents=True, exist_ok=True)
-            agent = GPT(
+            agent = LiteLLM(
                 str(log_path),
                 cfg.agent,
             )
@@ -143,7 +143,7 @@ def main(cfg: DictConfig):
                     missing_proof = True
             else:
                 log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
-                agent = GPT(
+                agent = LiteLLM(
                     str(log_path),
                     cfg.agent,
                 )
