@@ -30,10 +30,10 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
         print(f"\nNaive search, step {step}:\n{proof}")
         if env.proof_finished:
             if env.check_proof():
-                agent.log({"role": "user", "content": f"Final Proof: {proof}"})
+                agent.log(UserMessage(role="user", content=f"Final Proof: {proof}"))
                 return Status(step, True, proof)
             else:
-                agent.log({"role": "user", "content": f"Failed Proof: {proof}"})
+                agent.log(UserMessage(role="user", content=f"Failed Proof: {proof}"))
                 return Status(step, False, proof)
         else:
             env_prompt = env.prompt
@@ -47,7 +47,7 @@ def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
 
     if not env.proof_finished:
         proof = " ".join(env.proof)
-        agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
+        agent.log(UserMessage(role="user", content=f"Partial Proof: {proof}"))
         return Status(max_steps, False, proof)
 
     raise RuntimeError("Unreachable code.")
@@ -135,7 +135,7 @@ def expand_beam(
             print(proof)
             if env_copy.proof_finished:
                 if env_copy.check_proof():
-                    agent.log({"role": "user", "content": f"Final Proof: {proof}"})
+                    agent.log(UserMessage(role="user", content=f"Final Proof: {proof}"))
                     return [env_copy]
             else:
                 try:
@@ -196,11 +196,11 @@ def beam_search(
         else:
             proof = " ".join(beam[0].proof)
             agent.log(
-                {"role": "user", "content": f"Failed Proof (empty beam): {proof}"}
+                UserMessage(role="user", content=f"Failed Proof (empty beam): {proof}")
             )
             return Status(step, False, proof)
 
     # beam = sort_holes(beam)
     proof = " ".join(beam[0].proof)
-    agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
+    agent.log(UserMessage(role="user", content=f"Partial Proof: {proof}"))
     return Status(max_steps, False, proof)
