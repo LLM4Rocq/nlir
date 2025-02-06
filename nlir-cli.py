@@ -134,9 +134,8 @@ def main(cfg: DictConfig):
 
             if cfg.replay:
                 log_path = Path(path_folder, f"{file_path.stem}:{thm}.jsonl").absolute()
-                if log_path.exists():
-                    agent = Ghost(log_path.resolve())
-                else:
+                agent = Ghost(log_path.resolve())
+                if not log_path.exists():
                     missing_proof = True
             else:
                 log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
