@@ -9,11 +9,8 @@ from omegaconf import DictConfig
 import concurrent.futures
 import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
-
-# from .utils import get_agent, allow_mutli_responses
-
-import litellm
-
+from litellm import completion
+from litellm.exceptions import UnsupportedParamsError
 from litellm.types.utils import ModelResponse
 
 
@@ -76,7 +73,7 @@ class LiteLLM(LLM):
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
         list(map(self.log, messages))
-        resp = litellm.completion(
+        resp = completion(
             model=self.model_id,
             messages=messages,  # pyright: ignore
             temperature=self.temperature,
@@ -89,14 +86,14 @@ class LiteLLM(LLM):
         list(map(self.log, messages))
 
         try:
-            resp = litellm.completion(
+            resp = completion(
                 model=self.model_id,
                 messages=messages,  # pyright: ignore
                 temperature=self.temperature,
                 n=n,
             )
             return [m.message for m in resp.choices]  # pyright: ignore
-        except Exception as e:
+        except UnsupportedParamsError:
             with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
                 these_futures = [
                     executor.submit(self.response, messages) for _ in range(n)

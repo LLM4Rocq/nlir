@@ -1,5 +1,5 @@
 from .petanque import Env, TemplateEnv
-from .agent import LiteLLM
+from .agent import LLM
 from dataclasses import dataclass
 from typing import List
 import re
@@ -23,7 +23,7 @@ def naive_name(call):
 
 
 @weave.op(call_display_name=naive_name)
-def naive_search(agent: LiteLLM, env: Env, max_steps: int, is_template: bool) -> Status:
+def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Status:
     for step in range(max_steps):
         response = agent.response(env.prompt)
         env.exec(response)
@@ -105,7 +105,7 @@ def parse_comparison(message: ChatCompletionMessage) -> List[int]:
 
 
 @weave.op()
-def sort_LLM(new_beam: list[Env], agent: LiteLLM) -> list[Env]:
+def sort_LLM(new_beam: list[Env], agent: LLM) -> list[Env]:
     comparison_prompt = create_comparison_prompt(new_beam)
     response = agent.response(comparison_prompt)
     perm_indices = parse_comparison(response)
@@ -122,7 +122,7 @@ def sort_holes(new_beam: list[TemplateEnv]) -> list[TemplateEnv]:
 @weave.op()
 def expand_beam(
     beam: list[Env],
-    agent: LiteLLM,
+    agent: LLM,
     n_reponses: int,
     remaining_steps: int,
     is_template: bool,
@@ -163,7 +163,7 @@ def bs_name(call):
 
 @weave.op(call_display_name=bs_name)
 def beam_search(
-    agent: LiteLLM,
+    agent: LLM,
     env: Env,
     max_steps: int,
     beam_size: int,
