@@ -56,7 +56,7 @@ class LLM(ABC):
 
 class LiteLLM(LLM):
     """
-    GPT based agent (OpenAI API)
+    LiteLLM based agent (OpenAI API)
     """
 
     def __init__(
@@ -72,25 +72,31 @@ class LiteLLM(LLM):
     @weave.op()
     def response(self, messages: list[Message]) -> Response:
         list(map(self.log, messages))
-        resp = completion(
+        raw = completion(
             model=self.model_id,
-            messages=messages,  # pyright: ignore
+            messages=messages,
             temperature=self.temperature,
         )
-        return resp.choices[0].message  # pyright: ignore
+        # Hack: surprising type for raw.choices...
+        resp = Response(role="assistant", content=raw.choices[0].message.content)  # type: ignore
+        self.log(resp)
+        return resp
 
     @weave.op()
     def multi_responses(self, messages: list[Message], n=1) -> list[Response]:
         list(map(self.log, messages))
-
         try:
-            resp = completion(
+            raw = completion(
                 model=self.model_id,
-                messages=messages,  # pyright: ignore
+                messages=messages,
                 temperature=self.temperature,
                 n=n,
             )
-            return [m.message for m in resp.choices]  # pyright: ignore
+            resp = [
+                # Hack: surprising type for raw.choices...
+                Response(role="assistant", content=m.message.content)  # pyright: ignore
+                for m in raw.choices  # type: ignore
+            ]
         except UnsupportedParamsError:
             with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
                 these_futures = [
@@ -98,7 +104,8 @@ class LiteLLM(LLM):
                 ]
                 concurrent.futures.wait(these_futures)
                 resp = [future.result() for future in these_futures]
-                return resp
+        list(map(self.log, resp))
+        return resp
 
 
 class Ghost(LLM):
@@ -137,6 +144,6 @@ class Ghost(LLM):
                 resp.append(next(self.messages))
             except StopIteration:
                 break
-        for r in resp:
-            self.log(r)
-        return [Response(**r) for r in resp]
+        resp = [Response(**r) for r in resp]
+        list(map(self.log, resp))
+        return resp
