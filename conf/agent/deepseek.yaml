@@ -1,4 +1,2 @@
-model_id: "deepseek-chat"
+model_id: deepseek/deepseek-chat
 temperature: 1.0
-local: false
-provider: "deepseek"

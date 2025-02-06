@@ -1,4 +1,2 @@
 model_id: o1-mini-2024-09-12
 temperature: 1.0
-local: false
-provider: "openai"

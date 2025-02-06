@@ -2,5 +2,3 @@
 #model_id: "mistralai/Codestral-22B-v0.1"
 model_id: "mistral/mistral-large-latest"
 temperature: 1.0
-local: false
-provider: "mistral"

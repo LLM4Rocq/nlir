@@ -68,7 +68,6 @@ class LiteLLM(LLM):
         super().__init__(log_file)
         self.model_id = cfg_agent.model_id
         self.temperature = cfg_agent.temperature
-        self.provider = cfg_agent.provider
 
     @weave.op()
     def response(self, messages: list[Message]) -> Response:

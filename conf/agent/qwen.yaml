@@ -1,6 +1,4 @@
 #model_id: "Qwen/Qwen2.5-1.5B-Instruct"
 #model_id: "Qwen/Qwen2-7B-Instruct"
-model_id: "qwen2.5-coder:7b-instruct" #"qwen2.5-coder:32b-instruct-fp16" #"qwen2.5-coder:32b"
+model_id: ollama/qwen2.5-coder:7b-instruct
 temperature: 0.7
-local: true
-provider: ollama
