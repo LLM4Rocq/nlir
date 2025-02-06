@@ -1,14 +1,7 @@
 import os
-import openai as oai
 import json
 from abc import ABC, abstractmethod
 from typing import Iterable
-from openai.types.chat import (
-    ChatCompletionSystemMessageParam as SystemMessage,
-    ChatCompletionUserMessageParam as UserMessage,
-    ChatCompletionMessageParam as Message,
-    ChatCompletionMessage as Response,
-)
 from pathlib import Path
 from omegaconf import DictConfig
 import concurrent.futures
@@ -16,6 +9,12 @@ import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
 from litellm import completion
 from litellm.exceptions import UnsupportedParamsError
+from openai.types.chat import (
+    ChatCompletionSystemMessageParam as SystemMessage,
+    ChatCompletionUserMessageParam as UserMessage,
+    ChatCompletionMessageParam as Message,
+    ChatCompletionMessage as Response,
+)
 
 
 class LLM(ABC):
@@ -39,6 +38,7 @@ class LLM(ABC):
                     print(json.dumps(message, ensure_ascii=False), file=file)
 
     @abstractmethod
+    @weave.op()
     def response(self, messages: list[Message]) -> Response:
         """
         Given a list of messages returns the Agent response.
@@ -46,6 +46,7 @@ class LLM(ABC):
         pass
 
     @abstractmethod
+    @weave.op()
     def multi_responses(self, messages: list[Message], n: int) -> list[Response]:
         """
         Given a list of messages returns n possible responses.
@@ -69,6 +70,7 @@ class LiteLLM(LLM):
         self.temperature = cfg_agent.temperature
         self.provider = cfg_agent.provider
 
+    @weave.op()
     def response(self, messages: list[Message]) -> Response:
         list(map(self.log, messages))
         resp = completion(
@@ -78,6 +80,7 @@ class LiteLLM(LLM):
         )
         return resp.choices[0].message  # pyright: ignore
 
+    @weave.op()
     def multi_responses(self, messages: list[Message], n=1) -> list[Response]:
         list(map(self.log, messages))
 
