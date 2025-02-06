@@ -1,10 +1,9 @@
 from .petanque import Env, TemplateEnv
-from .agent import LLM
+from .agent import LLM, SystemMessage, UserMessage, Message, Response
 from dataclasses import dataclass
 from typing import List
 import re
 from typing import Iterable
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .prompts import comparison_prompts, tactic_prompts, template_prompts
 from functools import partial
 from ast import literal_eval
@@ -56,7 +55,7 @@ def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Sta
 
 def create_comparison_prompt(
     list_env: list[Env],
-) -> Iterable[ChatCompletionMessageParam]:
+) -> List[Message]:
     """
     Build the comparison prompt from the list of environments.
     """
@@ -75,16 +74,16 @@ def create_comparison_prompt(
     )
     content = "\n\n".join([intro, attempts])
     return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": content},
+        SystemMessage(role="system", content=system_prompt),
+        UserMessage(role="user", content=content),
     ]
 
 
 @weave.op()
-def parse_comparison(message: ChatCompletionMessage) -> List[int]:
-    if message.content:
+def parse_comparison(response: Response) -> List[int]:
+    if response.content:
         match = re.match(
-            r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", message.content, re.DOTALL
+            r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", response.content, re.DOTALL
         )
         if match:
             try:
@@ -94,10 +93,10 @@ def parse_comparison(message: ChatCompletionMessage) -> List[int]:
         # model didn't format the list properly, try alternative way of parsing
         # simply get all numbers followed by a comma, end of string or newline
         # TBC
-        if "Response" in message.content:
-            to_parse = message.content.split("Response")[-1]
+        if "Response" in response.content:
+            to_parse = response.content.split("Response")[-1]
         else:
-            to_parse = message.content
+            to_parse = response.content
         match = re.findall(r"([0-9]+)(,|$|\n)", to_parse, re.DOTALL)
         parsed = [int(el[0]) for el in match]
         return parsed

@@ -3,7 +3,12 @@ import openai as oai
 import json
 from abc import ABC, abstractmethod
 from typing import Iterable
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
+from openai.types.chat import (
+    ChatCompletionSystemMessageParam as SystemMessage,
+    ChatCompletionUserMessageParam as UserMessage,
+    ChatCompletionMessageParam as Message,
+    ChatCompletionMessage as Response,
+)
 from pathlib import Path
 from omegaconf import DictConfig
 import concurrent.futures
@@ -11,7 +16,6 @@ import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
 from litellm import completion
 from litellm.exceptions import UnsupportedParamsError
-from litellm.types.utils import ModelResponse
 
 
 class LLM(ABC):
@@ -26,27 +30,23 @@ class LLM(ABC):
         if os.path.exists(self.log_file):
             os.remove(self.log_file)
 
-    def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
+    def log(self, message: Message | Response):
         with open(self.log_file, "a") as file:
             match message:
-                case ChatCompletionMessage():
+                case Response():
                     print(message.model_dump_json(), file=file)
                 case _:
                     print(json.dumps(message, ensure_ascii=False), file=file)
 
     @abstractmethod
-    def response(
-        self, messages: Iterable[ChatCompletionMessageParam]
-    ) -> ChatCompletionMessage:
+    def response(self, messages: list[Message]) -> Response:
         """
         Given a list of messages returns the Agent response.
         """
         pass
 
     @abstractmethod
-    def multi_responses(
-        self, messages: Iterable[ChatCompletionMessageParam], n: int
-    ) -> list[ChatCompletionMessage]:
+    def multi_responses(self, messages: list[Message], n: int) -> list[Response]:
         """
         Given a list of messages returns n possible responses.
         """
@@ -69,9 +69,7 @@ class LiteLLM(LLM):
         self.temperature = cfg_agent.temperature
         self.provider = cfg_agent.provider
 
-    def response(
-        self, messages: Iterable[ChatCompletionMessageParam]
-    ) -> ChatCompletionMessage:
+    def response(self, messages: list[Message]) -> Response:
         list(map(self.log, messages))
         resp = completion(
             model=self.model_id,
@@ -80,9 +78,7 @@ class LiteLLM(LLM):
         )
         return resp.choices[0].message  # pyright: ignore
 
-    def multi_responses(
-        self, messages: Iterable[ChatCompletionMessageParam], n=1
-    ) -> list[ChatCompletionMessage]:
+    def multi_responses(self, messages: list[Message], n=1) -> list[Response]:
         list(map(self.log, messages))
 
         try:
@@ -119,22 +115,18 @@ class Ghost(LLM):
                 logs.append(json.loads(line))
         self.messages = filter(lambda m: m["role"] == "assistant", logs)
 
-    def __iter__(self) -> Iterable[ChatCompletionMessage]:
+    def __iter__(self) -> Iterable[Response]:
         yield from self.messages
 
     @weave.op()
-    def response(
-        self, messages: Iterable[ChatCompletionMessageParam]
-    ) -> ChatCompletionMessage:
+    def response(self, messages: list[Message]) -> Response:
         list(map(self.log, messages))
         resp = next(self.messages)
         self.log(resp)
-        return ChatCompletionMessage(**resp)
+        return Response(**resp)
 
     @weave.op()
-    def multi_responses(
-        self, messages: Iterable[ChatCompletionMessageParam], n=1
-    ) -> list[ChatCompletionMessage]:
+    def multi_responses(self, messages: list[Message], n=1) -> list[Response]:
         list(map(self.log, messages))
         # resp = [next(self.messages) for i in range(n)]
         resp = []
@@ -145,4 +137,4 @@ class Ghost(LLM):
                 break
         for r in resp:
             self.log(r)
-        return [ChatCompletionMessage(**r) for r in resp]
+        return [Response(**r) for r in resp]
