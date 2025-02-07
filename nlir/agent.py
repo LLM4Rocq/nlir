@@ -11,6 +11,9 @@ import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
 from .utils import get_agent, allow_mutli_responses
 
+from weave.trace.util import ContextAwareThreadPoolExecutor
+from .utils import get_agent, allow_mutli_responses
+
 
 class LLM(ABC):
     """
@@ -23,6 +26,9 @@ class LLM(ABC):
         # Delete the log file if it exists
         if os.path.exists(self.log_file):
             os.remove(self.log_file)
+        # Delete the log file if it exists
+        if os.path.exists(self.log_file):
+            os.remove(self.log_file)
 
     def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
         with open(self.log_file, "a") as file:
@@ -30,6 +36,7 @@ class LLM(ABC):
                 case ChatCompletionMessage():
                     print(message.model_dump_json(), file=file)
                 case _:
+                    print(json.dumps(message, ensure_ascii=False), file=file)
                     print(json.dumps(message, ensure_ascii=False), file=file)
 
     @abstractmethod
@@ -67,6 +74,7 @@ class GPT(LLM):
         self.temperature = cfg_agent.temperature
         self.provider = cfg_agent.provider
         self.allow_multi_responses = allow_mutli_responses(self.provider)
+        self.allow_multi_responses = allow_mutli_responses(self.provider)
         self.chat_complete = get_agent(cfg_agent)
 
     @weave.op()
@@ -74,7 +82,6 @@ class GPT(LLM):
         self, messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletionMessage:
         list(map(self.log, messages))
-
         if self.provider == "anthropic":
             resp = (
                 self.chat_complete(
@@ -95,14 +102,10 @@ class GPT(LLM):
                 .choices[0]
                 .message
             )
-
         if self.provider == "mistral":
             resp = ChatCompletionMessage(**resp.dict())
         elif self.provider == "anthropic":
             resp = ChatCompletionMessage(content=resp, role="assistant")
-        elif self.provider == "anthropic":
-            resp = ChatCompletionMessage(content=resp, role="assistant")
-
         self.log(resp)
         return resp
 
@@ -124,12 +127,26 @@ class GPT(LLM):
                 these_futures = [
                     executor.submit(self.response, messages) for _ in range(n)
                 ]
+        if self.allow_multi_responses:
+            resp = self.chat_complete(
+                model=self.model_id,
+                messages=messages,
+                temperature=self.temperature,
+                n=n,
+            )
+        else:
+            # provider not supporting multi response
+            with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
+                these_futures = [
+                    executor.submit(self.response, messages) for _ in range(n)
+                ]
                 concurrent.futures.wait(these_futures)
                 resp = [future.result() for future in these_futures]
         if self.provider == "mistral":
             for c in resp.choices:
                 self.log(c.message.dict())
             return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
+        elif not self.allow_multi_responses:
         elif not self.allow_multi_responses:
             return resp
         else:

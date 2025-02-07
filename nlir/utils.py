@@ -47,7 +47,6 @@ def get_agent(cfg_agent: DictConfig):
             else:
                 raise RuntimeError("Unknown provider")
 
-
             client = oai.OpenAI(api_key=api_key, base_url=base_url)
 
     return client.chat.completions.create
