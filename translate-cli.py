@@ -10,7 +10,7 @@ import sys
 from tqdm import tqdm
 from functools import partial
 
-from nlir.agent import GPT
+from nlir.agent import LiteLLM
 from nlir.petanque import TranslateEnv
 from nlir.search import naive_search, beam_search
 from nlir.extract import extract_theorems_miniF2F
@@ -72,14 +72,14 @@ def translate(cfg: DictConfig) -> float :
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
-        agent = GPT(str(log_path), cfg.agent)
+        agent = LiteLLM(str(log_path), cfg.agent)
 
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)
 
         # Translate the theorem
         print(f"Try to translate {cfg.theorem} in {file_path}.")
-        status = search(agent, env, cfg.search.max_steps, is_template=False)
+        status = search(agent, env, cfg.search.max_steps)
         print(f"\n\n---\nSuccess: {status.success}")
         print("---\n\n")
 
@@ -110,14 +110,14 @@ def translate(cfg: DictConfig) -> float :
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
-        agent = GPT(str(log_path), cfg.agent)
+        agent = LiteLLM(str(log_path), cfg.agent)
 
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)
 
         # Translate the theorem
         with weave.attributes({"file": file_path, "thm": theorem[0]}):
-            status = search(agent, env, cfg.search.max_steps, is_template=False)
+            status = search(agent, env, cfg.search.max_steps)
 
         # Adding the result
         results["names"].append(f"{env.file}:{env.thm}")
@@ -140,14 +140,14 @@ def translate(cfg: DictConfig) -> float :
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
-        agent = GPT(str(log_path), cfg.agent)
+        agent = LiteLLM(str(log_path), cfg.agent)
 
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)
 
         # Translate the theorem
         with weave.attributes({"file": file_path, "thm": theorem[0]}):
-            status = search(agent, env, cfg.search.max_steps, is_template=False)
+            status = search(agent, env, cfg.search.max_steps)
 
         # Adding the result
         results["names"].append(f"{env.file}:{env.thm}")

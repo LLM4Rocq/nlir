@@ -142,6 +142,7 @@ def extract_theorems_miniF2F(directory: str):
     """
     # Extract all directories
     lean_directory = os.path.join(directory, "lean/src")
+    print(lean_directory)
     if not os.path.isdir(lean_directory):
         print("Error: the parent directory has not the right structure, you should have a './lean/src' directory inside of it.")
         sys.exit(1)
