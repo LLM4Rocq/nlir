@@ -5,7 +5,7 @@ import json
 import numpy as np
 from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
-from nlir.agent import Ghost, GPT
+from nlir.agent import Ghost, LiteLLM
 from nlir.petanque import TacticEnv, TemplateEnv
 from nlir.search import naive_search, beam_search, Status
 from pathlib import Path
@@ -47,14 +47,12 @@ def main(cfg: DictConfig):
     pet = Pytanque(cfg.petanque.address, cfg.petanque.port)
     pet.connect()
     pet.set_workspace(False, str(wk_path))
-    is_template = False
 
     match cfg.search.kind:
         case "tactics":
             env_cls = TacticEnv
         case "template":
             env_cls = TemplateEnv
-            is_template = True
         case _:
             raise RuntimeError(
                 "search.kind config should be one of [tactics, template]"
@@ -62,13 +60,12 @@ def main(cfg: DictConfig):
 
     match cfg.search.mode:
         case "naive":
-            search = partial(naive_search, is_template=is_template)
+            search = partial(naive_search)
         case "beam":
             search = partial(
                 beam_search,
                 beam_size=cfg.search.beam_size,
                 n_reponses=cfg.search.n_responses,
-                is_template=is_template,
             )
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")
@@ -87,7 +84,7 @@ def main(cfg: DictConfig):
             agent = Ghost(source_path.resolve())
         else:
             log_path.parent.mkdir(parents=True, exist_ok=True)
-            agent = GPT(
+            agent = LiteLLM(
                 str(log_path),
                 cfg.agent,
             )
@@ -137,13 +134,12 @@ def main(cfg: DictConfig):
 
             if cfg.replay:
                 log_path = Path(path_folder, f"{file_path.stem}:{thm}.jsonl").absolute()
-                if log_path.exists():
-                    agent = Ghost(log_path.resolve())
-                else:
+                agent = Ghost(log_path.resolve())
+                if not log_path.exists():
                     missing_proof = True
             else:
                 log_path = Path(log_dir, f"{file_path.stem}:{thm}.jsonl").absolute()
-                agent = GPT(
+                agent = LiteLLM(
                     str(log_path),
                     cfg.agent,
                 )

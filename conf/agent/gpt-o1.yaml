@@ -1,4 +1,2 @@
 model_id: o1-2024-12-17
 temperature: 1.0
-local: false
-provider: "openai"
