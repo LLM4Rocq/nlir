@@ -1,10 +1,9 @@
 from .petanque import Env, TemplateEnv
-from .agent import LLM
+from .agent import LLM, SystemMessage, UserMessage, Message, Response
 from dataclasses import dataclass
 from typing import List
 import re
 from typing import Iterable
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .prompts import comparison_prompts, tactic_prompts, template_prompts
 from functools import partial
 from ast import literal_eval
@@ -17,12 +16,13 @@ class Status:
     success: bool
     proof: str
 
+
 def naive_name(call):
     return f"Naive-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
 
 
 @weave.op(call_display_name=naive_name)
-def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Status:
+def naive_search(agent: LLM, env: Env, max_steps: int) -> Status:
     for step in range(max_steps):
         response = agent.response(env.prompt)
         env.exec(response)
@@ -30,24 +30,24 @@ def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Sta
         print(f"\nNaive search, step {step}:\n{proof}")
         if env.proof_finished:
             if env.check_proof():
-                agent.log({"role": "user", "content": f"Final Proof: {proof}"})
+                agent.log(UserMessage(role="user", content=f"Final Proof: {proof}"))
                 return Status(step, True, proof)
             else:
-                agent.log({"role": "user", "content": f"Failed Proof: {proof}"})
+                agent.log(UserMessage(role="user", content=f"Failed Proof: {proof}"))
                 return Status(step, False, proof)
         else:
             env_prompt = env.prompt
             if len(str(env_prompt)) > 100000:
                 # prompt is too big!
                 break
-            elif is_template:
+            elif isinstance(env, TemplateEnv):
                 if len(env.holes) > max_steps - 1 - step:
                     # number of remaining steps is too big
                     break
 
     if not env.proof_finished:
         proof = " ".join(env.proof)
-        agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
+        agent.log(UserMessage(role="user", content=f"Partial Proof: {proof}"))
         return Status(max_steps, False, proof)
 
     raise RuntimeError("Unreachable code.")
@@ -55,7 +55,7 @@ def naive_search(agent: LLM, env: Env, max_steps: int, is_template: bool) -> Sta
 
 def create_comparison_prompt(
     list_env: list[Env],
-) -> Iterable[ChatCompletionMessageParam]:
+) -> List[Message]:
     """
     Build the comparison prompt from the list of environments.
     """
@@ -74,16 +74,16 @@ def create_comparison_prompt(
     )
     content = "\n\n".join([intro, attempts])
     return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": content},
+        SystemMessage(role="system", content=system_prompt),
+        UserMessage(role="user", content=content),
     ]
 
 
 @weave.op()
-def parse_comparison(message: ChatCompletionMessage) -> List[int]:
-    if message.content:
+def parse_comparison(response: Response) -> List[int]:
+    if response.content:
         match = re.match(
-            r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", message.content, re.DOTALL
+            r".*(\[\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\]).*", response.content, re.DOTALL
         )
         if match:
             try:
@@ -93,10 +93,10 @@ def parse_comparison(message: ChatCompletionMessage) -> List[int]:
         # model didn't format the list properly, try alternative way of parsing
         # simply get all numbers followed by a comma, end of string or newline
         # TBC
-        if "Response" in message.content:
-            to_parse = message.content.split("Response")[-1]
+        if "Response" in response.content:
+            to_parse = response.content.split("Response")[-1]
         else:
-            to_parse = message.content
+            to_parse = response.content
         match = re.findall(r"([0-9]+)(,|$|\n)", to_parse, re.DOTALL)
         parsed = [int(el[0]) for el in match]
         return parsed
@@ -124,7 +124,6 @@ def expand_beam(
     agent: LLM,
     n_reponses: int,
     remaining_steps: int,
-    is_template: bool,
 ) -> list[Env]:
     new_beam = []
     for env in beam:
@@ -136,7 +135,7 @@ def expand_beam(
             print(proof)
             if env_copy.proof_finished:
                 if env_copy.check_proof():
-                    agent.log({"role": "user", "content": f"Final Proof: {proof}"})
+                    agent.log(UserMessage(role="user", content=f"Final Proof: {proof}"))
                     return [env_copy]
             else:
                 try:
@@ -146,7 +145,7 @@ def expand_beam(
                     elif env_copy.proof in [e.proof for e in new_beam]:
                         # avoid adding duplicate proofs
                         continue
-                    elif is_template:
+                    elif isinstance(env_copy, TemplateEnv):
                         if len(env_copy.holes) > remaining_steps:
                             # avoid adding proofs with too many holes
                             continue
@@ -167,17 +166,19 @@ def beam_search(
     max_steps: int,
     beam_size: int,
     n_reponses: int,
-    is_template: bool,
     sorting_holes=False,
 ) -> Status:
     sort_beam = partial(sort_LLM, agent=agent)
-    if sorting_holes and is_template:
-        sort_beam = sort_holes
+    if sorting_holes:
+        if isinstance(env, TemplateEnv):
+            sort_beam = sort_holes
+        else:
+            raise RuntimeError("Sorting holes is only available for TemplateEnv")
     beam = [env]
     for step in range(max_steps):
         print(f"\nBeam search, step {step}:\n")
         # expand bean
-        new_beam = expand_beam(beam, agent, n_reponses, max_steps - step, is_template)
+        new_beam = expand_beam(beam, agent, n_reponses, max_steps - step)
         if new_beam:
             if len(new_beam) <= beam_size:
                 if new_beam[0].proof_finished:
@@ -195,11 +196,11 @@ def beam_search(
         else:
             proof = " ".join(beam[0].proof)
             agent.log(
-                {"role": "user", "content": f"Failed Proof (empty beam): {proof}"}
+                UserMessage(role="user", content=f"Failed Proof (empty beam): {proof}")
             )
             return Status(step, False, proof)
 
     # beam = sort_holes(beam)
     proof = " ".join(beam[0].proof)
-    agent.log({"role": "user", "content": f"Partial Proof: {proof}"})
+    agent.log(UserMessage(role="user", content=f"Partial Proof: {proof}"))
     return Status(max_steps, False, proof)

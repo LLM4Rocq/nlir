@@ -1,4 +1,2 @@
-model_id: "qwen2.5-coder:7b"
+model_id: ollama/qwen2.5-coder:7b
 temperature: 1.0
-local: true
-provider: ollama

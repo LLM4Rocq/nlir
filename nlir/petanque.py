@@ -5,7 +5,9 @@ from dataclasses import dataclass, field
 from collections import deque
 from typing import Iterable, Union, Tuple
 from pytanque import Pytanque, State, Goal, PetanqueError
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
+
+# from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
+from .agent import UserMessage, SystemMessage, Message, Response
 from .prompts import tactic_prompts, template_prompts
 import copy
 import weave
@@ -133,12 +135,12 @@ class Env(ABC):
         pass
 
     @abstractmethod
-    def exec(self, message: ChatCompletionMessage):
+    def exec(self, response: Response):
         pass
 
     @property
     @abstractmethod
-    def prompt(self) -> Iterable[ChatCompletionMessageParam]:
+    def prompt(self) -> list[Message]:
         pass
 
     def check_proof(self) -> bool:
@@ -180,17 +182,17 @@ class TacticEnv(Env):
         self.state: State = self.initial_state
         self.previous_unsuccessful = []
 
-    def parse(self, message: ChatCompletionMessage) -> list[str]:
+    def parse(self, response: Response) -> list[str]:
         """
         Parse the LLM response.
         Handle multi-steps (e.g., `/step intros. [...] /step induction n.`).
         Handle multi-tactics step (e.g., `/step intros. induction n.`)
         """
-        if not message.content:
+        if not response.content:
             return []
         else:
             pattern = r"/step\b(.*)"
-            steps = [match.group(1) for match in re.finditer(pattern, message.content)]
+            steps = [match.group(1) for match in re.finditer(pattern, response.content)]
             if self.verbose:
                 print(
                     "parsed tactics:",
@@ -219,13 +221,13 @@ class TacticEnv(Env):
         except PetanqueError:
             return False
 
-    def exec(self, message: ChatCompletionMessage):
+    def exec(self, response: Response):
         """
         Parse and execute the LLM message.
         Keep partial progresses if execution fails in the middle of a multi-steps / multi-tactics command.
         """
         self.n_interactions += 1
-        tactics = self.parse(message)
+        tactics = self.parse(response)
         for tac in tactics:
             if self.verbose:
                 print("tactic:", tac)
@@ -243,7 +245,7 @@ class TacticEnv(Env):
                 break
 
     @property
-    def prompt(self) -> Iterable[ChatCompletionMessageParam]:
+    def prompt(self) -> list[Message]:
         """
         Build the tactic prompt from the current goal.
         """
@@ -273,8 +275,8 @@ class TacticEnv(Env):
                 )
             )
         return [
-            {"role": "system", "content": syst_prompt},
-            {"role": "user", "content": content},
+            SystemMessage(role="system", content=syst_prompt),
+            UserMessage(role="user", content=content),
         ]
 
     @property
@@ -343,13 +345,13 @@ class TemplateEnv(Env):
         new.holes = copy.deepcopy(self.holes, memo)
         return new
 
-    def parse(self, message: ChatCompletionMessage) -> str:
-        if message.content:
+    def parse(self, response: Response) -> str:
+        if response.content:
             tag_pattern = r"<proof>(.*?)</proof>"
-            if match := re.search(tag_pattern, message.content, re.DOTALL):
+            if match := re.search(tag_pattern, response.content, re.DOTALL):
                 return match.group(1).strip()
             md_pattern = r"```(?:coq)?(.*?)```"
-            if match := re.search(md_pattern, message.content, re.DOTALL):
+            if match := re.search(md_pattern, response.content, re.DOTALL):
                 return match.group(1).strip()
         return "admit."  # cannot parse proof
 
@@ -385,7 +387,7 @@ class TemplateEnv(Env):
                     opened_par += 1
                 elif tac == "}":
                     if opened_par == 0:
-                        raise PetanqueError(-32003, 'Coq: The proof is not focused')
+                        raise PetanqueError(-32003, "Coq: The proof is not focused")
                     opened_par -= 1
                 else:
                     template.proof.append(tac)
@@ -440,14 +442,14 @@ class TemplateEnv(Env):
             return False
         return self.check_proof()
 
-    def exec(self, message: ChatCompletionMessage):
+    def exec(self, response: Response):
         """
         Parse and templatize the LLM message to fill the first hole.
         Append the generated holes at the end of the queue.
         """
         self.n_interactions += 1
         h = self.holes.popleft()
-        proof = self.parse(message)
+        proof = self.parse(response)
         sub_template, sub_holes = self.templatize(h.state, proof)
         if sub_template.tactics == ["{", "admit.", "}"]:  # Remove nested admit.
             h.proof = []
@@ -458,7 +460,7 @@ class TemplateEnv(Env):
         self.proof = self.template.tactics
 
     @property
-    def prompt(self) -> Iterable[ChatCompletionMessageParam]:
+    def prompt(self) -> list[Message]:
         """
         Build the template prompt from the first hole
         """
@@ -485,8 +487,8 @@ class TemplateEnv(Env):
                     )
                 )
             return [
-                {"role": "system", "content": template_prompts.system_prompt},
-                {"role": "user", "content": content},
+                SystemMessage(role="system", content=template_prompts.system_prompt),
+                UserMessage(role="user", content=content),
             ]
         else:
             raise RuntimeError("No more holes")

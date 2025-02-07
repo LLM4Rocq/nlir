@@ -1,4 +1,2 @@
-model_id: "codestral-latest"
+model_id: mistral/codestral-latest
 temperature: 1.0
-local: false
-provider: "mistral"

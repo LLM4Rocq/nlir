@@ -1,15 +1,20 @@
 import os
-import openai as oai
 import json
 from abc import ABC, abstractmethod
 from typing import Iterable
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from pathlib import Path
 from omegaconf import DictConfig
 import concurrent.futures
 import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
-from .utils import get_agent, allow_mutli_responses
+from litellm import completion
+from litellm.exceptions import UnsupportedParamsError
+from openai.types.chat import (
+    ChatCompletionSystemMessageParam as SystemMessage,
+    ChatCompletionUserMessageParam as UserMessage,
+    ChatCompletionMessageParam as Message,
+    ChatCompletionMessage as Response,
+)
 
 
 class LLM(ABC):
@@ -24,36 +29,34 @@ class LLM(ABC):
         if os.path.exists(self.log_file):
             os.remove(self.log_file)
 
-    def log(self, message: ChatCompletionMessageParam | ChatCompletionMessage):
+    def log(self, message: Message | Response):
         with open(self.log_file, "a") as file:
             match message:
-                case ChatCompletionMessage():
+                case Response():
                     print(message.model_dump_json(), file=file)
                 case _:
                     print(json.dumps(message, ensure_ascii=False), file=file)
 
     @abstractmethod
-    def response(
-        self, messages: Iterable[ChatCompletionMessageParam]
-    ) -> ChatCompletionMessage:
+    @weave.op()
+    def response(self, messages: list[Message]) -> Response:
         """
         Given a list of messages returns the Agent response.
         """
         pass
 
     @abstractmethod
-    def multi_responses(
-        self, messages: Iterable[ChatCompletionMessageParam], n: int
-    ) -> list[ChatCompletionMessage]:
+    @weave.op()
+    def multi_responses(self, messages: list[Message], n: int) -> list[Response]:
         """
         Given a list of messages returns n possible responses.
         """
         pass
 
 
-class GPT(LLM):
+class LiteLLM(LLM):
     """
-    GPT based agent (OpenAI API)
+    LiteLLM based agent (OpenAI API)
     """
 
     def __init__(
@@ -65,72 +68,44 @@ class GPT(LLM):
         super().__init__(log_file)
         self.model_id = cfg_agent.model_id
         self.temperature = cfg_agent.temperature
-        self.provider = cfg_agent.provider
-        self.allow_multi_responses = allow_mutli_responses(self.provider)
-        self.chat_complete = get_agent(cfg_agent)
 
     @weave.op()
-    def response(
-        self, messages: Iterable[ChatCompletionMessageParam]
-    ) -> ChatCompletionMessage:
+    def response(self, messages: list[Message]) -> Response:
         list(map(self.log, messages))
-        if self.provider == "anthropic":
-            resp = (
-                self.chat_complete(
-                    max_tokens=2048,
-                    messages=[messages[1]],
-                    system=messages[0]["content"],
-                    model=self.model_id,
-                    temperature=self.temperature,
-                )
-                .content[0]
-                .text
-            )
-        else:
-            resp = (
-                self.chat_complete(
-                    model=self.model_id, messages=messages, temperature=self.temperature
-                )
-                .choices[0]
-                .message
-            )
-        if self.provider == "mistral":
-            resp = ChatCompletionMessage(**resp.dict())
-        elif self.provider == "anthropic":
-            resp = ChatCompletionMessage(content=resp, role="assistant")
+        raw = completion(
+            model=self.model_id,
+            messages=messages,
+            temperature=self.temperature,
+        )
+        # Hack: surprising type for raw.choices...
+        resp = Response(role="assistant", content=raw.choices[0].message.content)  # type: ignore
         self.log(resp)
         return resp
 
     @weave.op()
-    def multi_responses(
-        self, messages: Iterable[ChatCompletionMessageParam], n=1
-    ) -> list[ChatCompletionMessage]:
+    def multi_responses(self, messages: list[Message], n=1) -> list[Response]:
         list(map(self.log, messages))
-        if self.allow_multi_responses:
-            resp = self.chat_complete(
+        try:
+            raw = completion(
                 model=self.model_id,
                 messages=messages,
                 temperature=self.temperature,
                 n=n,
             )
-        else:
-            # provider not supporting multi response
+            resp = [
+                # Hack: surprising type for raw.choices...
+                Response(role="assistant", content=m.message.content)  # pyright: ignore
+                for m in raw.choices  # type: ignore
+            ]
+        except UnsupportedParamsError:
             with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
                 these_futures = [
                     executor.submit(self.response, messages) for _ in range(n)
                 ]
                 concurrent.futures.wait(these_futures)
                 resp = [future.result() for future in these_futures]
-        if self.provider == "mistral":
-            for c in resp.choices:
-                self.log(c.message.dict())
-            return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
-        elif not self.allow_multi_responses:
-            return resp
-        else:
-            for c in resp.choices:
-                self.log(c.message)
-            return [c.message for c in resp.choices]
+        list(map(self.log, resp))
+        return resp
 
 
 class Ghost(LLM):
@@ -149,22 +124,18 @@ class Ghost(LLM):
                 logs.append(json.loads(line))
         self.messages = filter(lambda m: m["role"] == "assistant", logs)
 
-    def __iter__(self) -> Iterable[ChatCompletionMessage]:
+    def __iter__(self) -> Iterable[Response]:
         yield from self.messages
 
     @weave.op()
-    def response(
-        self, messages: Iterable[ChatCompletionMessageParam]
-    ) -> ChatCompletionMessage:
+    def response(self, messages: list[Message]) -> Response:
         list(map(self.log, messages))
         resp = next(self.messages)
         self.log(resp)
-        return ChatCompletionMessage(**resp)
+        return Response(**resp)
 
     @weave.op()
-    def multi_responses(
-        self, messages: Iterable[ChatCompletionMessageParam], n=1
-    ) -> list[ChatCompletionMessage]:
+    def multi_responses(self, messages: list[Message], n=1) -> list[Response]:
         list(map(self.log, messages))
         # resp = [next(self.messages) for i in range(n)]
         resp = []
@@ -173,6 +144,6 @@ class Ghost(LLM):
                 resp.append(next(self.messages))
             except StopIteration:
                 break
-        for r in resp:
-            self.log(r)
-        return [ChatCompletionMessage(**r) for r in resp]
+        resp = [Response(**r) for r in resp]
+        list(map(self.log, resp))
+        return resp

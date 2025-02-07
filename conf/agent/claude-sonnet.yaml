@@ -1,4 +1,2 @@
-model_id: claude-3-5-sonnet-20241022
+model_id: anthropic/claude-3-5-sonnet-20241022
 temperature: 1.0
-local: false
-provider: "anthropic"
