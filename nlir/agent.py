@@ -147,7 +147,6 @@ class GPT(LLM):
                 self.log(c.message.dict())
             return [ChatCompletionMessage(**c.message.dict()) for c in resp.choices]
         elif not self.allow_multi_responses:
-        elif not self.allow_multi_responses:
             return resp
         else:
             for c in resp.choices:
@@ -198,44 +197,3 @@ class Ghost(LLM):
         for r in resp:
             self.log(r)
         return [ChatCompletionMessage(**r) for r in resp]
-
-class Human(LLM):
-    """
-    Human agent to answer instead of the computer.
-    """
-
-    def show(self, message: ChatCompletionMessageParam):
-        print("Role:", message["role"])
-        print("Content:\n", message["content"])
-
-    @weave.op()
-    def response(
-        self, messages: Iterable[ChatCompletionMessageParam]
-    ) -> ChatCompletionMessage:
-        list(map(self.log, messages))
-        list(map(self.show, messages))
-
-        print("Your response:")
-        lines = []
-        while True:
-            line = input()
-            if line:
-                lines.append(line)
-            else:
-                break
-        content = '\n'.join(lines)
-        resp = {
-            "role": "assistant",
-            "content": content
-        }
-
-        self.log(resp)
-        return ChatCompletionMessage(**resp)
-
-    @weave.op()
-    def multi_responses(
-        self, messages: Iterable[ChatCompletionMessageParam], n=1
-    ) -> list[ChatCompletionMessage]:
-        resp = self.response(messages)
-
-        return [resp for _ in messages]

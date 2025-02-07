@@ -132,6 +132,8 @@ This add-on main purpose is to translate the set of theorems *miniF2F* found [he
 
 There are two modes for this program, one can translate a single theorem by specifying its name or translate the whole set if no theorem is specified.
 
+Additionally, you can also supervise the model by giving him remarks or hints after each error.
+
 The default configuration can be found in `conf/translate_config.yaml`. Every field can be overriden using the [hydra](https://hydra.cc/docs/intro/) syntax:
 
 ```bash
@@ -139,21 +141,24 @@ $ python translate-cli.py --help
 translate-cli is powered by Hydra.
 
 There are two possible modes:
-- Use options `theorem=my_thm` to translate one theorem.
+- Use the option `theorem=my_theorem` to translate one theorem.
 - With no theorem specified, all theorems are translated.
 
-Alternatively you can use your own config file with the option `--config-name myconf.yaml`.
-Config files should be in the `conf/translate` directory.
+To enable supervision of the model, use the option `supervise=true`.
+
+Alternatively you can use your own config file with the option `--config-name my_translate_config.yaml`.
+Config files should be in the `conf` directory.
 
 == Config ==
 Override anything in the config (foo.bar=value)
 
-workspace: miniF2F        # Path to the set of theorems
-theorem: null             # Theorem to translate a single theorem
-prompt: simple_question1  # Prompt used for translation
-output_dir: translations  # Output directory for the translation
+workspace: examples/small_miniF2F # Path to the set of theorems
+theorem: null                     # Name of the single theorem to be translated
+supervise: false                  # Supervised translation or not
+log_dir: "logs/translate"         # Directory to store the log files
+
 agent:
-  model_id: qwen2.5-coder:7b # LLM id
+  model_id: qwencode7b       # LLM id
   temperature: 1.0           # Temperature used
   local: true                # Is the model local or not
   provider: ollama           # Provider of the model
@@ -162,8 +167,6 @@ agent:
 Powered by Hydra (https://hydra.cc)
 Use --hydra-help to view Hydra specific help
 ```
-
-As you can see, a specific prompt can be specified. The list of available prompts is given by `prompt_list` in [prompt.py](./nlir/translate/prompt.py). To add a custom prompt, simply add it to the list.
 
 ### Using custom config files
 

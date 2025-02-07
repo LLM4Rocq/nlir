@@ -10,10 +10,10 @@ import sys
 from tqdm import tqdm
 from functools import partial
 
-from nlir.agent import Human, GPT
+from nlir.agent import GPT
 from nlir.petanque import TranslateEnv
 from nlir.search import naive_search, beam_search
-from nlir.extract import extract_theorems
+from nlir.extract import extract_theorems_miniF2F
 
 @hydra.main(version_base=None, config_path="conf", config_name="translate_config")
 def translate(cfg: DictConfig) -> float :
@@ -47,7 +47,7 @@ def translate(cfg: DictConfig) -> float :
             raise RuntimeError("search.mode config should be one of [naive, beam]")
 
     # Extract all theorems
-    theorems = extract_theorems(cfg.workspace)
+    theorems = extract_theorems_miniF2F(cfg.workspace)
 
     # Only translate one theorem
     if cfg.theorem:
@@ -72,10 +72,7 @@ def translate(cfg: DictConfig) -> float :
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
-        if cfg.human:
-            agent = Human(str(log_path))
-        else:
-            agent = GPT(str(log_path), cfg.agent)
+        agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)
@@ -113,10 +110,7 @@ def translate(cfg: DictConfig) -> float :
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the agent
-        if cfg.human:
-            agent = Human(str(log_path))
-        else:
-            agent = GPT(str(log_path), cfg.agent)
+        agent = GPT(str(log_path), cfg.agent)
 
         # Create the petanque env
         env = TranslateEnv(pet, str(wk_path), str(file_path), theorem, cfg.supervise)

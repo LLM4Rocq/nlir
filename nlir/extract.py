@@ -3,9 +3,9 @@ import os
 import json
 import sys
 
-def extract_lean(file_path: str):
+def extract_lean_from_file(file_path: str):
     """
-    Extracts all theorems and their proofs from a Lean file.
+    Extract all theorems and their proofs from a Lean file. Libraries imports are not extracted by the function.
 
     Args:
         file_path (str): Path to the Lean file.
@@ -31,7 +31,7 @@ def extract_lean(file_path: str):
 
     return theorems
 
-def extract_isabelle(directory: str):
+def extract_isabelle_from_directory(directory: str):
     """
     Extracts all theorems and their proofs from a directory containing Isabelle files for each theorem.
 
@@ -71,7 +71,7 @@ def extract_isabelle(directory: str):
 
     return theorems
 
-def extract_informal(directory: str):
+def extract_informal_from_directory(directory: str):
     """
     Extracts all theorems informal description from a directory containing JSON files for each theorem.
 
@@ -128,9 +128,10 @@ def extract_coq_theorem(message: str):
 
     return theorems[-1]
 
-def extract_theorems(directory: str):
+def extract_theorems_miniF2F(directory: str):
     """
-    Extracts the Lean, Isabelle and informal description version of all theorems and their proofs from a directory matching the structure of the Facebook's miniF2F git repository : https://github.com/facebookresearch/miniF2F/tree/main.
+    Extracts the Lean, Isabelle and informal description version of all theorems and their proofs from a directory.
+    The directory must match the structure of the miniF2F (https://github.com/facebookresearch/miniF2F) dataset.
 
     Args:
         directory (str): Path to the directory.
@@ -154,9 +155,9 @@ def extract_theorems(directory: str):
         sys.exit(1)
 
     # Extract all valid lean and isabelle theorems
-    valid_lean_th = extract_lean(os.path.join(lean_directory, "valid.lean"))
-    valid_isab_th = extract_isabelle(os.path.join(isab_directory, "valid"))
-    valid_info_th = extract_informal(os.path.join(info_directory, "valid"))
+    valid_lean_th = extract_lean_from_file(os.path.join(lean_directory, "valid.lean"))
+    valid_isab_th = extract_isabelle_from_directory(os.path.join(isab_directory, "valid"))
+    valid_info_th = extract_informal_from_directory(os.path.join(info_directory, "valid"))
 
     # Store the lean and isabelle version for each theorem
     valid_theorems = {}
@@ -172,9 +173,9 @@ def extract_theorems(directory: str):
             }
 
     # The same is done for test theorems
-    test_lean_th = extract_lean(os.path.join(lean_directory, "test.lean"))
-    test_isab_th = extract_isabelle(os.path.join(isab_directory, "test"))
-    test_info_th = extract_informal(os.path.join(info_directory, "test"))
+    test_lean_th = extract_lean_from_file(os.path.join(lean_directory, "test.lean"))
+    test_isab_th = extract_isabelle_from_directory(os.path.join(isab_directory, "test"))
+    test_info_th = extract_informal_from_directory(os.path.join(info_directory, "test"))
 
     test_theorems = {}
     for (lean_name, lean_th), (isab_name, isab_th), (info_name, info_th) in zip(test_lean_th, test_isab_th, test_info_th):
