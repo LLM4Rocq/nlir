@@ -1,8 +1,12 @@
 .vscode
 .envrc
 .python-version
+miniF2F
+examples/small_miniF2F/coq
 __pycache__
 poetry.lock
 outputs
 logs
 *.jsonl
+.DS_Store
+_CoqProject
