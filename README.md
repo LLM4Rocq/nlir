@@ -1,10 +1,10 @@
 # NLIR: Natural Language Intermediate Representation for Mechanized Theorem Proving
 
 NLIR leverage LLMs natural language reasoning ability for theorem proving with the Rocq interactive theorem prover (ITP).
-We propose two interactive proof protocols both leveraging natural language reasoning: 
+We propose two interactive proof protocols both leveraging natural language reasoning:
 
- - Tactic-by-tactic proof construction mimics the typical behavior of a standard Coq user: given the current goals, the agent generates one or several tactics that updates the goals and repeats this process until the proof is complete. 
- - Hierarchical proof templating tries to generate full proofs directly. Failed tactics are then replaced with holes to obtain a proof template. The agent repeats the process of filling each hole until the proof is complete. 
+- Tactic-by-tactic proof construction mimics the typical behavior of a standard Coq user: given the current goals, the agent generates one or several tactics that updates the goals and repeats this process until the proof is complete.
+- Hierarchical proof templating tries to generate full proofs directly. Failed tactics are then replaced with holes to obtain a proof template. The agent repeats the process of filling each hole until the proof is complete.
 
 Our approach’s originality is that although both protocols’ inputs (goals) and outputs (tactics) are Coq code, the agent internally uses natural language as an intermediate representation to analyze the input and guide the code generation.
 We couple both protocols with standard search algorithms leveraging feedback from the ITP and using natural language to rerank proof candidates.
@@ -39,6 +39,7 @@ export OPENAI_PROJECT="your project id"
 The default configuration can be found in `conf/config.yaml`.
 You can override every field (see below).
 E.g., to try the tactics agent without beam search on theorem `foo` defined in `examples/foo.v`:
+
 ```
 $ python nlir-cli.py workspace=examples file=foo.v theorem=foo search.kind=tactics search.mode=naive
 ```
@@ -50,7 +51,7 @@ You should see each iteration of the proof in stdout.
 We use [hydra](https://hydra.cc/docs/intro/) to manage the configurations.
 
 ```bash
-$ python nlir-cli.py --help           
+$ python nlir-cli.py --help
 nlri-cli is powered by Hydra.
 
 There are two possible modes:
@@ -122,6 +123,50 @@ $ python nlir-cli.py benchmark=example
 ```
 
 The conversation logs and the configuration will be stored in `./outputs/date/time/`
+
+### Translating
+
+This respository also provides a translation mechanism. Given a natural language description of a theorem along with its Lean and Isabelle codes, the agent will try to translate the theorem in Rocq.
+
+This add-on main purpose is to translate the set of theorems *miniF2F* found [here](https://github.com/facebookresearch/miniF2F/tree/main). So if used on another set of theorems, the set should have the same structure as the [small_miniF2F](./examples/small_miniF2F/) folder.
+
+There are two modes for this program, one can translate a single theorem by specifying its name or translate the whole set if no theorem is specified.
+
+Additionally, you can also supervise the model by giving him remarks or hints after each error.
+
+The default configuration can be found in `conf/translate_config.yaml`. Every field can be overriden using the [hydra](https://hydra.cc/docs/intro/) syntax:
+
+```bash
+$ python translate-cli.py --help
+translate-cli is powered by Hydra.
+
+There are two possible modes:
+- Use the option `theorem=my_theorem` to translate one theorem.
+- With no theorem specified, all theorems are translated.
+
+To enable supervision of the model, use the option `supervise=true`.
+
+Alternatively you can use your own config file with the option `--config-name my_translate_config.yaml`.
+Config files should be in the `conf` directory.
+
+== Config ==
+Override anything in the config (foo.bar=value)
+
+workspace: examples/small_miniF2F # Path to the set of theorems
+theorem: null                     # Name of the single theorem to be translated
+supervise: false                  # Supervised translation or not
+log_dir: "logs/translate"         # Directory to store the log files
+
+agent:
+  model_id: qwencode7b       # LLM id
+  temperature: 1.0           # Temperature used
+  local: true                # Is the model local or not
+  provider: ollama           # Provider of the model
+
+
+Powered by Hydra (https://hydra.cc)
+Use --hydra-help to view Hydra specific help
+```
 
 ### Using custom config files
 

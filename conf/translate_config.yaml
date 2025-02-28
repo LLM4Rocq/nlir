@@ -1,24 +1,16 @@
-workspace: "examples"
-file: foo.v
-theorem: foo
-replay: false
-benchmark: null
-num_theorems: 100
-log_dir: "logs"
+workspace: "examples/small_miniF2F"
+theorem: null
+supervise: false
+log_dir: "logs/translate"
+weave: false
 
 petanque:
   address: 127.0.0.1
   port: 8765
   timeout: 10
   run_opts: null
-  context: true
-
-agent:
-  model_id: qwen2.5-coder:7b
-  temperature: 1.0
 
 search:
-  kind: tactics
   mode: naive
   max_steps: 10
   beam_size: 3
@@ -26,16 +18,16 @@ search:
 
 hydra:
   help:
-    app_name: nlri-cli
+    app_name: translate-cli
 
     template: |
       ${hydra.help.header}
       There are two possible modes:
-      - Use options `file=my_file.v` and `theorem=my_thm` to prove one theorem.
-      - Use option `benchmark=my_bench.yaml` to test a full benchmark.
+      - Use options `theorem=my_thm` to translate one theorem.
+      - With no theorem specified, all theorems are translated.
 
       Alternatively you can use your own config file with the option `--config-name myconf.yaml`.
-      Config files should be in the `conf` directory.
+      Config files should be in the `conf/translate` directory.
 
       == Config ==
       Override anything in the config (foo.bar=value)
@@ -44,8 +36,9 @@ hydra:
 
       ${hydra.help.footer}
 
+# @package _global_
 defaults:
   - _self_
-  - benchmark: null
+  - agent: qwencode7b
   - override hydra/job_logging: none
   - override hydra/hydra_logging: none

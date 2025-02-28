@@ -28,6 +28,9 @@ class LLM(ABC):
         # Delete the log file if it exists
         if os.path.exists(self.log_file):
             os.remove(self.log_file)
+        # Delete the log file if it exists
+        if os.path.exists(self.log_file):
+            os.remove(self.log_file)
 
     def log(self, message: Message | Response):
         with open(self.log_file, "a") as file:
@@ -35,6 +38,7 @@ class LLM(ABC):
                 case Response():
                     print(message.model_dump_json(), file=file)
                 case _:
+                    print(json.dumps(message, ensure_ascii=False), file=file)
                     print(json.dumps(message, ensure_ascii=False), file=file)
 
     @abstractmethod
