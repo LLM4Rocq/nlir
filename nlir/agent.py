@@ -54,6 +54,65 @@ class LLM(ABC):
         pass
 
 
+class vLLM(LLM):
+
+    def __init__(self, log_file: str, cfg_agent: DictConfig):
+        super().__init__(log_file)
+        self.model_id = cfg_agent.model_id
+        self.temperature = cfg_agent.temperature
+        self.tp_degree = cfg_agent.tp_degree
+        self.model = vllm.LLM(
+            model=self.model_id,
+            tensor_parallel_size=self.tp_degree,
+            dtype="bfloat16",
+            max_num_batched_tokens=4096,
+            download-dir=cfg_agent.download_dir,
+            enforce_eager = True,
+        )
+        tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_id)
+        self.tokenizer_eos = tokenizer.eos_token
+
+    def response(self, messages: list[Message]) -> Response:
+        assert False, "Not implemented"
+
+    def multi_responses(self, messages: list[Message], n: int) -> list[Response]:
+        assert False, "Not implemented"
+
+    def generate(
+        self, num_samples: int, max_tokens: int, prompt: str, stop: str
+    ) -> tuple[list[str], list[float]]:
+        texts = []
+        scores = []
+        params = vllm.SamplingParams(
+            n=num_samples,
+            temperature=0.0,
+            use_beam_search=True,
+            max_tokens=max_tokens,
+            stop=stop,
+        )
+        outputs = model.generate([prompt], params, use_tqdm=False)
+        if len(outputs) == 0:
+            return [], []
+        for output in outputs[0].outputs:
+            text = output.text.replace(self.tokenizer_eos, "")
+            score = output.cumulative_logprob / max(len(output.token_ids), 1)
+            texts.append(text)
+            scores.append(score)
+
+        texts, scores = _unique_sorted(texts, scores)
+        return texts, scores
+
+
+def _unique_sorted(texts, scores) -> tuple[list[str], list[float]]:
+    texts_ = []
+    scores_ = []
+    for t, s in sorted(zip(texts, scores), key=lambda x: -x[1]):
+        if t not in texts_:
+            texts_.append(t)
+            scores_.append(s)
+    return texts_, scores_
+
+
 class LiteLLM(LLM):
     """
     LiteLLM based agent (OpenAI API)

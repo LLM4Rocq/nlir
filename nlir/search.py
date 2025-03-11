@@ -204,3 +204,7 @@ def beam_search(
     proof = " ".join(beam[0].proof)
     agent.log(UserMessage(role="user", content=f"Partial Proof: {proof}"))
     return Status(max_steps, False, proof)
+
+
+def best_first_search(agent: LLM, env: Env, max_steps: int, n_reponses: int) -> Status:
+    pass

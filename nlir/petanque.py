@@ -8,7 +8,7 @@ from pytanque import Pytanque, State, Goal, PetanqueError
 
 # from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from .agent import UserMessage, SystemMessage, Message, Response
-from .prompts import tactic_prompts, template_prompts
+from .prompts import tactic_prompts, template_prompts, lemma
 import copy
 import weave
 
@@ -168,6 +168,32 @@ class Env(ABC):
     @abstractmethod
     def info_for_comparison(self) -> str:
         pass
+
+
+class Lemma_TacticEnv(Env):
+    def __init__(
+        self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool
+    ):
+        super().__init__(pet, workspace, file, thm, context)
+        self.state: State = self.initial_state
+
+    def exec(self, tactics):
+        for tac in tactics:
+            if self.verbose:
+                print("tactic:", tac)
+            try:
+                self.state = self.pet.run_tac(self.state, tac, timeout=10)
+                self.proof.append(tac)
+                if self.verbose:
+                    print("success")
+            except PetanqueError as err:
+                if self.verbose:
+                    print("error:", err.message)
+                break
+
+    @property
+    def prompt(self, tactic):
+        return lemma.prompt.format(tactic=tactic)
 
 
 class TacticEnv(Env):
