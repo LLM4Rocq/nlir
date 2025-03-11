@@ -8,7 +8,7 @@ import concurrent.futures
 import weave
 from weave.trace.util import ContextAwareThreadPoolExecutor
 from litellm import completion
-from litellm.exceptions import UnsupportedParamsError
+from litellm.exceptions import UnsupportedParamsError, BadRequestError
 from openai.types.chat import (
     ChatCompletionSystemMessageParam as SystemMessage,
     ChatCompletionUserMessageParam as UserMessage,
@@ -97,7 +97,7 @@ class LiteLLM(LLM):
                 Response(role="assistant", content=m.message.content)  # pyright: ignore
                 for m in raw.choices  # type: ignore
             ]
-        except UnsupportedParamsError:
+        except (UnsupportedParamsError, BadRequestError):
             with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
                 these_futures = [
                     executor.submit(self.response, messages) for _ in range(n)
