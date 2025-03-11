@@ -1,0 +1,1464 @@
+- file: test/amc12a_2019_p12.v
+  theorems:
+    - amc12a_2019_p12
+- file: test/amc12_2000_p6.v
+  theorems:
+    - amc12_2000_p6
+- file: test/mathd_algebra_33.v
+  theorems:
+    - mathd_algebra_33
+- file: test/mathd_numbertheory_314.v
+  theorems:
+    - mathd_numbertheory_314
+- file: test/amc12b_2021_p4.v
+  theorems:
+    - amc12b_2021_p4
+- file: test/induction_pprime_pdvdapowpma.v
+  theorems:
+    - induction_pprime_pdvdapowpma
+- file: test/mathd_algebra_270.v
+  theorems:
+    - mathd_algebra_270
+- file: test/algebra_ineq_nto1onlt2m1on.v
+  theorems:
+    - algebra_ineq_nto1onlt2m1on
+- file: test/mathd_numbertheory_135.v
+  theorems:
+    - mathd_numbertheory_135
+- file: test/algebra_amgm_sum1toneqn_prod1tonleq1.v
+  theorems:
+    - algebra_amgm_sum1toneqn_prod1tonleq1
+- file: test/algebra_bleqa_apbon2msqrtableqambsqon8b.v
+  theorems:
+    - algebra_bleqa_apbon2msqrtableqambsqon8b
+- file: test/mathd_algebra_441.v
+  theorems:
+    - mathd_algebra_441
+- file: test/mathd_numbertheory_765.v
+  theorems:
+    - mathd_numbertheory_765
+- file: test/imo_1992_p1.v
+  theorems:
+    - imo_1992_p1
+- file: test/numbertheory_notequiv2i2jasqbsqdiv8.v
+  theorems:
+    - numbertheory_notequiv2i2jasqbsqdiv8
+- file: test/amc12a_2009_p7.v
+  theorems:
+    - amc12a_2009_p7
+- file: test/numbertheory_aoddbdiv4asqpbsqmod8eq1.v
+  theorems:
+    - numbertheory_aoddbdiv4asqpbsqmod8eq1
+- file: test/imo_2019_p1.v
+  theorems:
+    - imo_2019_p1
+- file: test/mathd_numbertheory_296.v
+  theorems:
+    - mathd_numbertheory_296
+- file: test/mathd_algebra_215.v
+  theorems:
+    - mathd_algebra_215
+- file: test/mathd_numbertheory_582.v
+  theorems:
+    - mathd_numbertheory_582
+- file: test/algebra_absapbon1pabsapbleqsumabsaon1pabsa.v
+  theorems:
+    - algebra_absapbon1pabsapbleqsumabsaon1pabsa
+- file: test/algebra_9onxpypzleqsum2onxpy.v
+  theorems:
+    - algebra_9onxpypzleqsum2onxpy
+- file: test/numbertheory_exk2powkeqapb2mulbpa2_aeq1.v
+  theorems:
+    - numbertheory_exk2powkeqapb2mulbpa2_aeq1
+- file: test/mathd_algebra_293.v
+  theorems:
+    - mathd_algebra_293
+- file: test/mathd_numbertheory_150.v
+  theorems:
+    - mathd_numbertheory_150
+- file: test/algebra_sum1onsqrt2to1onsqrt10000lt198.v
+  theorems:
+    - algebra_sum1onsqrt2to1onsqrt10000lt198
+- file: test/amc12b_2020_p13.v
+  theorems:
+    - amc12b_2020_p13
+- file: test/aime_1984_p7.v
+  theorems:
+    - aime_1984_p7
+- file: test/mathd_numbertheory_254.v
+  theorems:
+    - mathd_numbertheory_254
+- file: test/mathd_algebra_487.v
+  theorems:
+    - mathd_algebra_487
+- file: test/mathd_algebra_170.v
+  theorems:
+    - mathd_algebra_170
+- file: test/imo_1977_p6.v
+  theorems:
+    - imo_1977_p6
+- file: test/mathd_numbertheory_235.v
+  theorems:
+    - mathd_numbertheory_235
+- file: test/mathd_numbertheory_521.v
+  theorems:
+    - mathd_numbertheory_521
+- file: test/mathd_numbertheory_175.v
+  theorems:
+    - mathd_numbertheory_175
+- file: test/induction_12dvd4expnp1p20.v
+  theorems:
+    - induction_12dvd4expnp1p20
+- file: test/mathd_algebra_289.v
+  theorems:
+    - mathd_algebra_289
+- file: test/amc12_2001_p21.v
+  theorems:
+    - amc12_2001_p21
+- file: test/mathd_algebra_320.v
+  theorems:
+    - mathd_algebra_320
+- file: test/induction_prod1p1onk3le3m1onn.v
+  theorems:
+    - induction_prod1p1onk3le3m1onn
+- file: test/mathd_algebra_160.v
+  theorems:
+    - mathd_algebra_160
+- file: test/induction_11div10tonmn1ton.v
+  theorems:
+    - induction_11div10tonmn1ton
+- file: test/mathd_numbertheory_12.v
+  theorems:
+    - mathd_numbertheory_12
+- file: test/amc12b_2020_p22.v
+  theorems:
+    - amc12b_2020_p22
+- file: test/imo_1974_p3.v
+  theorems:
+    - imo_1974_p3
+- file: test/induction_nfactltnexpnm1ngt3.v
+  theorems:
+    - induction_nfactltnexpnm1ngt3
+- file: test/imo_1983_p6.v
+  theorems:
+    - imo_1983_p6
+- file: test/algebra_sqineq_unitcircatbpamblt1.v
+  theorems:
+    - algebra_sqineq_unitcircatbpamblt1
+- file: test/mathd_numbertheory_100.v
+  theorems:
+    - mathd_numbertheory_100
+- file: test/imosl_2007_algebra_p6.v
+  theorems:
+    - imosl_2007_algebra_p6
+- file: test/amc12b_2002_p19.v
+  theorems:
+    - amc12b_2002_p19
+- file: test/mathd_algebra_80.v
+  theorems:
+    - mathd_algebra_80
+- file: test/mathd_numbertheory_435.v
+  theorems:
+    - mathd_numbertheory_435
+- file: test/mathd_algebra_141.v
+  theorems:
+    - mathd_algebra_141
+- file: test/mathd_numbertheory_321.v
+  theorems:
+    - mathd_numbertheory_321
+- file: test/imo_1960_p2.v
+  theorems:
+    - imo_1960_p2
+- file: test/mathd_numbertheory_447.v
+  theorems:
+    - mathd_numbertheory_447
+- file: test/amc12b_2021_p13.v
+  theorems:
+    - amc12b_2021_p13
+- file: test/mathd_algebra_158.v
+  theorems:
+    - mathd_algebra_158
+- file: test/mathd_numbertheory_353.v
+  theorems:
+    - mathd_numbertheory_353
+- file: test/mathd_algebra_139.v
+  theorems:
+    - mathd_algebra_139
+- file: test/mathd_numbertheory_728.v
+  theorems:
+    - mathd_numbertheory_728
+- file: test/amc12a_2013_p4.v
+  theorems:
+    - amc12a_2013_p4
+- file: test/mathd_numbertheory_1124.v
+  theorems:
+    - mathd_numbertheory_1124
+- file: test/mathd_algebra_484.v
+  theorems:
+    - mathd_algebra_484
+- file: test/aime_1994_p3.v
+  theorems:
+    - aime_1994_p3
+- file: test/amc12b_2021_p3.v
+  theorems:
+    - amc12b_2021_p3
+- file: test/amc12_2000_p1.v
+  theorems:
+    - amc12_2000_p1
+- file: test/amc12b_2021_p9.v
+  theorems:
+    - amc12b_2021_p9
+- file: test/mathd_numbertheory_3.v
+  theorems:
+    - mathd_numbertheory_3
+- file: test/imo_1982_p1.v
+  theorems:
+    - imo_1982_p1
+- file: test/mathd_algebra_156.v
+  theorems:
+    - mathd_algebra_156
+- file: test/induction_1pxpownlt1pnx.v
+  theorems:
+    - induction_1pxpownlt1pnx
+- file: test/algebra_absxm1pabsxpabsxp1eqxp2_0leqxleq1.v
+  theorems:
+    - algebra_absxm1pabsxpabsxp1eqxp2_0leqxleq1
+- file: test/algebra_apbon2pownleqapownpbpowon2.v
+  theorems:
+    - algebra_apbon2pownleqapownpbpowon2
+- file: test/imo_1984_p6.v
+  theorems:
+    - imo_1984_p6
+- file: test/amc12a_2021_p8.v
+  theorems:
+    - amc12a_2021_p8
+- file: test/mathd_algebra_137.v
+  theorems:
+    - mathd_algebra_137
+- file: test/mathd_algebra_427.v
+  theorems:
+    - mathd_algebra_427
+- file: test/numbertheory_2pownm1prime_nprime.v
+  theorems:
+    - numbertheory_2pownm1prime_nprime
+- file: test/mathd_numbertheory_247.v
+  theorems:
+    - mathd_numbertheory_247
+- file: test/mathd_algebra_184.v
+  theorems:
+    - mathd_algebra_184
+- file: test/imo_1985_p6.v
+  theorems:
+    - imo_1985_p6
+- file: test/mathd_algebra_24.v
+  theorems:
+    - mathd_algebra_24
+- file: test/mathd_algebra_412.v
+  theorems:
+    - mathd_algebra_412
+- file: test/mathd_numbertheory_559.v
+  theorems:
+    - mathd_numbertheory_559
+- file: test/algebra_abpbcpcageq3_sumaonsqrtapbgeq3onsqrt2.v
+  theorems:
+    - algebra_abpbcpcageq3_sumaonsqrtapbgeq3onsqrt2
+- file: test/aime_1987_p5.v
+  theorems:
+    - aime_1987_p5
+- file: test/amc12a_2003_p23.v
+  theorems:
+    - amc12a_2003_p23
+- file: test/amc12a_2020_p15.v
+  theorems:
+    - amc12a_2020_p15
+- file: test/aime_1990_p15.v
+  theorems:
+    - aime_1990_p15
+- file: test/amc12a_2021_p12.v
+  theorems:
+    - amc12a_2021_p12
+- file: test/mathd_algebra_329.v
+  theorems:
+    - mathd_algebra_329
+- file: test/aime_1983_p3.v
+  theorems:
+    - aime_1983_p3
+- file: test/mathd_algebra_342.v
+  theorems:
+    - mathd_algebra_342
+- file: test/mathd_numbertheory_517.v
+  theorems:
+    - mathd_numbertheory_517
+- file: test/mathd_numbertheory_34.v
+  theorems:
+    - mathd_numbertheory_34
+- file: test/amc12a_2021_p18.v
+  theorems:
+    - amc12a_2021_p18
+- file: test/mathd_numbertheory_457.v
+  theorems:
+    - mathd_numbertheory_457
+- file: test/aime_1995_p7.v
+  theorems:
+    - aime_1995_p7
+- file: test/mathd_algebra_148.v
+  theorems:
+    - mathd_algebra_148
+- file: test/mathd_numbertheory_328.v
+  theorems:
+    - mathd_numbertheory_328
+- file: test/mathd_algebra_263.v
+  theorems:
+    - mathd_algebra_263
+- file: test/mathd_algebra_208.v
+  theorems:
+    - mathd_algebra_208
+- file: test/mathd_numbertheory_207.v
+  theorems:
+    - mathd_numbertheory_207
+- file: test/mathd_numbertheory_343.v
+  theorems:
+    - mathd_numbertheory_343
+- file: test/mathd_algebra_142.v
+  theorems:
+    - mathd_algebra_142
+- file: test/mathd_algebra_452.v
+  theorems:
+    - mathd_algebra_452
+- file: test/mathd_algebra_129.v
+  theorems:
+    - mathd_algebra_129
+- file: test/algebra_sqineq_at2malt1.v
+  theorems:
+    - algebra_sqineq_at2malt1
+- file: test/amc12_2001_p5.v
+  theorems:
+    - amc12_2001_p5
+- file: test/mathd_algebra_346.v
+  theorems:
+    - mathd_algebra_346
+- file: test/amc12a_2008_p25.v
+  theorems:
+    - amc12a_2008_p25
+- file: test/mathd_numbertheory_222.v
+  theorems:
+    - mathd_numbertheory_222
+- file: test/amc12b_2020_p21.v
+  theorems:
+    - amc12b_2020_p21
+- file: test/mathd_algebra_246.v
+  theorems:
+    - mathd_algebra_246
+- file: test/mathd_algebra_302.v
+  theorems:
+    - mathd_algebra_302
+- file: test/mathd_numbertheory_185.v
+  theorems:
+    - mathd_numbertheory_185
+- file: test/amc12b_2002_p2.v
+  theorems:
+    - amc12b_2002_p2
+- file: test/mathd_algebra_756.v
+  theorems:
+    - mathd_algebra_756
+- file: test/mathd_numbertheory_495.v
+  theorems:
+    - mathd_numbertheory_495
+- file: test/mathd_numbertheory_99.v
+  theorems:
+    - mathd_numbertheory_99
+- file: test/mathd_numbertheory_277.v
+  theorems:
+    - mathd_numbertheory_277
+- file: test/mathd_numbertheory_427.v
+  theorems:
+    - mathd_numbertheory_427
+- file: test/mathd_algebra_153.v
+  theorems:
+    - mathd_algebra_153
+- file: test/amc12b_2021_p18.v
+  theorems:
+    - amc12b_2021_p18
+- file: test/mathd_algebra_176.v
+  theorems:
+    - mathd_algebra_176
+- file: test/amc12a_2020_p25.v
+  theorems:
+    - amc12a_2020_p25
+- file: test/imo_1968_p5_1.v
+  theorems:
+    - imo_1968_p5_1
+- file: test/mathd_numbertheory_239.v
+  theorems:
+    - mathd_numbertheory_239
+- file: test/amc12a_2021_p22.v
+  theorems:
+    - amc12a_2021_p22
+- file: test/aime_1984_p1.v
+  theorems:
+    - aime_1984_p1
+- file: test/imo_1959_p1.v
+  theorems:
+    - imo_1959_p1
+- file: test/mathd_algebra_313.v
+  theorems:
+    - mathd_algebra_313
+- file: test/imo_1969_p2.v
+  theorems:
+    - imo_1969_p2
+- file: test/mathd_numbertheory_233.v
+  theorems:
+    - mathd_numbertheory_233
+- file: test/mathd_algebra_113.v
+  theorems:
+    - mathd_algebra_113
+- file: test/mathd_numbertheory_237.v
+  theorems:
+    - mathd_numbertheory_237
+- file: test/aime_1990_p4.v
+  theorems:
+    - aime_1990_p4
+- file: test/mathd_numbertheory_769.v
+  theorems:
+    - mathd_numbertheory_769
+- file: test/mathd_algebra_276.v
+  theorems:
+    - mathd_algebra_276
+- file: test/mathd_algebra_332.v
+  theorems:
+    - mathd_algebra_332
+- file: test/mathd_algebra_359.v
+  theorems:
+    - mathd_algebra_359
+- file: test/mathd_numbertheory_212.v
+  theorems:
+    - mathd_numbertheory_212
+- file: test/amc12a_2021_p9.v
+  theorems:
+    - amc12a_2021_p9
+- file: test/imo_1963_p5.v
+  theorems:
+    - imo_1963_p5
+- file: test/imo_2001_p6.v
+  theorems:
+    - imo_2001_p6
+- file: test/mathd_algebra_338.v
+  theorems:
+    - mathd_algebra_338
+- file: test/amc12a_2021_p3.v
+  theorems:
+    - amc12a_2021_p3
+- file: test/imo_1965_p2.v
+  theorems:
+    - imo_1965_p2
+- file: test/numbertheory_fxeq4powxp6powxp9powx_f2powmdvdf2pown.v
+  theorems:
+    - numbertheory_fxeq4powxp6powxp9powx_f2powmdvdf2pown
+- file: test/imo_1964_p2.v
+  theorems:
+    - imo_1964_p2
+- file: test/numbertheory_3pow2pownm1mod2pownp3eq2pownp2.v
+  theorems:
+    - numbertheory_3pow2pownm1mod2pownp3eq2pownp2
+- file: test/mathd_algebra_478.v
+  theorems:
+    - mathd_algebra_478
+- file: test/mathd_numbertheory_227.v
+  theorems:
+    - mathd_numbertheory_227
+- file: test/amc12b_2002_p7.v
+  theorems:
+    - amc12b_2002_p7
+- file: test/mathd_numbertheory_618.v
+  theorems:
+    - mathd_numbertheory_618
+- file: test/algebra_apbmpcneq0_aeq0anbeq0anceq0.v
+  theorems:
+    - algebra_apbmpcneq0_aeq0anbeq0anceq0
+- file: test/mathd_numbertheory_552.v
+  theorems:
+    - mathd_numbertheory_552
+- file: test/mathd_algebra_419.v
+  theorems:
+    - mathd_algebra_419
+- file: test/amc12a_2020_p9.v
+  theorems:
+    - amc12a_2020_p9
+- file: test/algebra_sqineq_unitcircatbpabsamblt1.v
+  theorems:
+    - algebra_sqineq_unitcircatbpabsamblt1
+- file: test/aime_1997_p9.v
+  theorems:
+    - aime_1997_p9
+- file: test/mathd_algebra_44.v
+  theorems:
+    - mathd_algebra_44
+- file: test/amc12a_2021_p19.v
+  theorems:
+    - amc12a_2021_p19
+- file: test/amc12a_2002_p6.v
+  theorems:
+    - amc12a_2002_p6
+- file: test/numbertheory_x5neqy2p4.v
+  theorems:
+    - numbertheory_x5neqy2p4
+- file: test/amc12b_2020_p2.v
+  theorems:
+    - amc12b_2020_p2
+- file: test/aime_1983_p2.v
+  theorems:
+    - aime_1983_p2
+- file: test/mathd_algebra_513.v
+  theorems:
+    - mathd_algebra_513
+- file: test/amc12a_2020_p10.v
+  theorems:
+    - amc12a_2020_p10
+- file: test/mathd_numbertheory_127.v
+  theorems:
+    - mathd_numbertheory_127
+- file: test/imo_1997_p5.v
+  theorems:
+    - imo_1997_p5
+- file: test/mathd_algebra_143.v
+  theorems:
+    - mathd_algebra_143
+- file: test/mathd_algebra_209.v
+  theorems:
+    - mathd_algebra_209
+- file: test/mathd_numbertheory_342.v
+  theorems:
+    - mathd_numbertheory_342
+- file: test/amc12_2000_p20.v
+  theorems:
+    - amc12_2000_p20
+- file: test/mathd_algebra_459.v
+  theorems:
+    - mathd_algebra_459
+- file: test/amc12b_2020_p6.v
+  theorems:
+    - amc12b_2020_p6
+- file: test/algebra_apbpceq2_abpbcpcaeq1_aleq1on3anbleq1ancleq4on3.v
+  theorems:
+    - algebra_apbpceq2_abpbcpcaeq1_aleq1on3anbleq1ancleq4on3
+- file: test/mathd_algebra_432.v
+  theorems:
+    - mathd_algebra_432
+- file: test/mathd_numbertheory_229.v
+  theorems:
+    - mathd_numbertheory_229
+- file: test/mathd_algebra_362.v
+  theorems:
+    - mathd_algebra_362
+- file: test/amc12a_2020_p7.v
+  theorems:
+    - amc12a_2020_p7
+- file: test/mathd_algebra_107.v
+  theorems:
+    - mathd_algebra_107
+- file: test/algebra_2varlineareq_fp3zeq11_3tfm1m5zeqn68_feqn10_zeq7.v
+  theorems:
+    - algebra_2varlineareq_fp3zeq11_3tfm1m5zeqn68_feqn10_zeq7
+- file: test/mathd_numbertheory_66.v
+  theorems:
+    - mathd_numbertheory_66
+- file: test/mathd_algebra_114.v
+  theorems:
+    - mathd_algebra_114
+- file: test/induction_pord1p1on2powklt5on2.v
+  theorems:
+    - induction_pord1p1on2powklt5on2
+- file: test/mathd_algebra_76.v
+  theorems:
+    - mathd_algebra_76
+- file: test/mathd_algebra_354.v
+  theorems:
+    - mathd_algebra_354
+- file: test/mathd_numbertheory_764.v
+  theorems:
+    - mathd_numbertheory_764
+- file: test/mathd_algebra_440.v
+  theorems:
+    - mathd_algebra_440
+- file: test/mathd_numbertheory_293.v
+  theorems:
+    - mathd_numbertheory_293
+- file: test/mathd_numbertheory_5.v
+  theorems:
+    - mathd_numbertheory_5
+- file: test/mathd_algebra_17.v
+  theorems:
+    - mathd_algebra_17
+- file: test/mathd_algebra_296.v
+  theorems:
+    - mathd_algebra_296
+- file: test/mathd_numbertheory_299.v
+  theorems:
+    - mathd_numbertheory_299
+- file: test/amc12a_2002_p13.v
+  theorems:
+    - amc12a_2002_p13
+- file: test/mathd_algebra_275.v
+  theorems:
+    - mathd_algebra_275
+- file: test/induction_sumkexp3eqsumksq.v
+  theorems:
+    - induction_sumkexp3eqsumksq
+- file: test/aime_1988_p8.v
+  theorems:
+    - aime_1988_p8
+- file: test/amc12a_2009_p6.v
+  theorems:
+    - amc12a_2009_p6
+- file: test/mathd_algebra_398.v
+  theorems:
+    - mathd_algebra_398
+- file: test/mathd_algebra_400.v
+  theorems:
+    - mathd_algebra_400
+- file: test/mathd_numbertheory_483.v
+  theorems:
+    - mathd_numbertheory_483
+- file: test/amc12_2000_p12.v
+  theorems:
+    - amc12_2000_p12
+- file: test/mathd_algebra_314.v
+  theorems:
+    - mathd_algebra_314
+- file: test/mathd_numbertheory_234.v
+  theorems:
+    - mathd_numbertheory_234
+- file: test/mathd_algebra_171.v
+  theorems:
+    - mathd_algebra_171
+- file: test/mathd_numbertheory_85.v
+  theorems:
+    - mathd_numbertheory_85
+- file: test/amc12b_2021_p1.v
+  theorems:
+    - amc12b_2021_p1
+- file: test/mathd_numbertheory_541.v
+  theorems:
+    - mathd_numbertheory_541
+- file: test/mathd_algebra_392.v
+  theorems:
+    - mathd_algebra_392
+- file: test/algebra_others_exirrpowirrrat.v
+  theorems:
+    - algebra_others_exirrpowirrrat
+- file: test/amc12a_2021_p25.v
+  theorems:
+    - amc12a_2021_p25
+- file: test/mathd_algebra_196.v
+  theorems:
+    - mathd_algebra_196
+- file: test/amc12a_2003_p5.v
+  theorems:
+    - amc12a_2003_p5
+- file: test/mathd_numbertheory_711.v
+  theorems:
+    - mathd_numbertheory_711
+- file: test/mathd_numbertheory_345.v
+  theorems:
+    - mathd_numbertheory_345
+- file: test/mathd_numbertheory_451.v
+  theorems:
+    - mathd_numbertheory_451
+- file: test/mathd_algebra_125.v
+  theorems:
+    - mathd_algebra_125
+- file: test/aime_1983_p1.v
+  theorems:
+    - aime_1983_p1
+- file: test/aime_1999_p11.v
+  theorems:
+    - aime_1999_p11
+- file: test/mathd_numbertheory_430.v
+  theorems:
+    - mathd_numbertheory_430
+- file: test/mathd_algebra_288.v
+  theorems:
+    - mathd_algebra_288
+- file: test/mathd_algebra_388.v
+  theorems:
+    - mathd_algebra_388
+- file: test/aime_1989_p8.v
+  theorems:
+    - aime_1989_p8
+- file: test/amc12b_2002_p4.v
+  theorems:
+    - amc12b_2002_p4
+- file: test/mathd_algebra_304.v
+  theorems:
+    - mathd_algebra_304
+- file: test/algebra_amgm_sumasqdivbgeqsuma.v
+  theorems:
+    - algebra_amgm_sumasqdivbgeqsuma
+- file: test/mathd_numbertheory_551.v
+  theorems:
+    - mathd_numbertheory_551
+- file: test/numbertheory_4x3m7y3neq2003.v
+  theorems:
+    - numbertheory_4x3m7y3neq2003
+- file: test/imo_1962_p2.v
+  theorems:
+    - imo_1962_p2
+- file: test/algebra_cubrtrp1oncubrtreq3_rcubp1onrcubeq5778.v
+  theorems:
+    - algebra_cubrtrp1oncubrtreq3_rcubp1onrcubeq5778
+- file: test/amc12a_2020_p4.v
+  theorems:
+    - amc12a_2020_p4
+- file: test/aime_1991_p9.v
+  theorems:
+    - aime_1991_p9
+- file: test/mathd_algebra_188.v
+  theorems:
+    - mathd_algebra_188
+- file: test/mathd_algebra_598.v
+  theorems:
+    - mathd_algebra_598
+- file: test/mathd_numbertheory_320.v
+  theorems:
+    - mathd_numbertheory_320
+- file: test/amc12a_2021_p14.v
+  theorems:
+    - amc12a_2021_p14
+- file: test/imo_1981_p6.v
+  theorems:
+    - imo_1981_p6
+- file: test/mathd_numbertheory_341.v
+  theorems:
+    - mathd_numbertheory_341
+- file: valid/mathd_algebra_405.v
+  theorems:
+    - mathd_algebra_405
+- file: valid/mathd_numbertheory_461.v
+  theorems:
+    - mathd_numbertheory_461
+- file: valid/mathd_algebra_234.v
+  theorems:
+    - mathd_algebra_234
+- file: valid/aime_1997_p11.v
+  theorems:
+    - aime_1997_p11
+- file: valid/numbertheory_nckeqnm1ckpnm1ckm1.v
+  theorems:
+    - numbertheory_nckeqnm1ckpnm1ckm1
+- file: valid/amc12a_2013_p7.v
+  theorems:
+    - amc12a_2013_p7
+- file: valid/aime_1994_p4.v
+  theorems:
+    - aime_1994_p4
+- file: valid/mathd_numbertheory_110.v
+  theorems:
+    - mathd_numbertheory_110
+- file: valid/amc12a_2009_p9.v
+  theorems:
+    - amc12a_2009_p9
+- file: valid/mathd_numbertheory_640.v
+  theorems:
+    - mathd_numbertheory_640
+- file: valid/mathd_numbertheory_48.v
+  theorems:
+    - mathd_numbertheory_48
+- file: valid/aime_1990_p2.v
+  theorems:
+    - aime_1990_p2
+- file: valid/numbertheory_sqmod3in01d.v
+  theorems:
+    - numbertheory_sqmod3in01d
+- file: valid/mathd_algebra_151.v
+  theorems:
+    - mathd_algebra_151
+- file: valid/mathd_numbertheory_42.v
+  theorems:
+    - mathd_numbertheory_42
+- file: valid/aime_1996_p5.v
+  theorems:
+    - aime_1996_p5
+- file: valid/mathd_algebra_77.v
+  theorems:
+    - mathd_algebra_77
+- file: valid/numbertheory_xsqpysqintdenomeq.v
+  theorems:
+    - numbertheory_xsqpysqintdenomeq
+- file: valid/mathd_algebra_73.v
+  theorems:
+    - mathd_algebra_73
+- file: valid/mathd_numbertheory_335.v
+  theorems:
+    - mathd_numbertheory_335
+- file: valid/aime_1988_p3.v
+  theorems:
+    - aime_1988_p3
+- file: valid/algebra_amgm_sqrtxymulxmyeqxpy_xpygeq4.v
+  theorems:
+    - algebra_amgm_sqrtxymulxmyeqxpy_xpygeq4
+- file: valid/amc12a_2002_p12.v
+  theorems:
+    - amc12a_2002_p12
+- file: valid/mathd_numbertheory_198.v
+  theorems:
+    - mathd_numbertheory_198
+- file: valid/algebra_2complexrootspoly_xsqp49eqxp7itxpn7i.v
+  theorems:
+    - algebra_2complexrootspoly_xsqp49eqxp7itxpn7i
+- file: valid/mathd_algebra_393.v
+  theorems:
+    - mathd_algebra_393
+- file: valid/mathd_numbertheory_84.v
+  theorems:
+    - mathd_numbertheory_84
+- file: valid/mathd_algebra_251.v
+  theorems:
+    - mathd_algebra_251
+- file: valid/mathd_algebra_37.v
+  theorems:
+    - mathd_algebra_37
+- file: valid/amc12a_2010_p10.v
+  theorems:
+    - amc12a_2010_p10
+- file: valid/mathd_algebra_455.v
+  theorems:
+    - mathd_algebra_455
+- file: valid/amc12_2001_p2.v
+  theorems:
+    - amc12_2001_p2
+- file: valid/imo_1987_p4.v
+  theorems:
+    - imo_1987_p4
+- file: valid/induction_seq_mul2pnp1.v
+  theorems:
+    - induction_seq_mul2pnp1
+- file: valid/induction_divisibility_3div2tooddnp1.v
+  theorems:
+    - induction_divisibility_3div2tooddnp1
+- file: valid/mathd_numbertheory_200.v
+  theorems:
+    - mathd_numbertheory_200
+- file: valid/mathd_numbertheory_37.v
+  theorems:
+    - mathd_numbertheory_37
+- file: valid/mathd_algebra_69.v
+  theorems:
+    - mathd_algebra_69
+- file: valid/mathd_numbertheory_188.v
+  theorems:
+    - mathd_numbertheory_188
+- file: valid/imo_2006_p3.v
+  theorems:
+    - imo_2006_p3
+- file: valid/aime_1991_p6.v
+  theorems:
+    - aime_1991_p6
+- file: valid/imo_1993_p5.v
+  theorems:
+    - imo_1993_p5
+- file: valid/aimeII_2020_p6.v
+  theorems:
+    - aimeII_2020_p6
+- file: valid/amc12a_2009_p25.v
+  theorems:
+    - amc12a_2009_p25
+- file: valid/amc12b_2021_p21.v
+  theorems:
+    - amc12b_2021_p21
+- file: valid/mathd_algebra_101.v
+  theorems:
+    - mathd_algebra_101
+- file: valid/mathd_algebra_245.v
+  theorems:
+    - mathd_algebra_245
+- file: valid/mathd_algebra_48.v
+  theorems:
+    - mathd_algebra_48
+- file: valid/mathd_numbertheory_221.v
+  theorems:
+    - mathd_numbertheory_221
+- file: valid/amc12a_2003_p24.v
+  theorems:
+    - amc12a_2003_p24
+- file: valid/algebra_sqineq_2at2pclta2c2p41pc.v
+  theorems:
+    - algebra_sqineq_2at2pclta2c2p41pc
+- file: valid/algebra_amgm_sumasqdivbsqgeqsumbdiva.v
+  theorems:
+    - algebra_amgm_sumasqdivbsqgeqsumbdiva
+- file: valid/mathd_algebra_224.v
+  theorems:
+    - mathd_algebra_224
+- file: valid/mathd_algebra_493.v
+  theorems:
+    - mathd_algebra_493
+- file: valid/aime_1987_p8.v
+  theorems:
+    - aime_1987_p8
+- file: valid/induction_divisibility_3divnto3m2n.v
+  theorems:
+    - induction_divisibility_3divnto3m2n
+- file: valid/mathd_numbertheory_33.v
+  theorems:
+    - mathd_numbertheory_33
+- file: valid/imo_1966_p5.v
+  theorems:
+    - imo_1966_p5
+- file: valid/mathd_algebra_451.v
+  theorems:
+    - mathd_algebra_451
+- file: valid/mathd_algebra_67.v
+  theorems:
+    - mathd_algebra_67
+- file: valid/aime_1988_p4.v
+  theorems:
+    - aime_1988_p4
+- file: valid/imo_1984_p2.v
+  theorems:
+    - imo_1984_p2
+- file: valid/amc12a_2017_p2.v
+  theorems:
+    - amc12a_2017_p2
+- file: valid/mathd_algebra_15.v
+  theorems:
+    - mathd_algebra_15
+- file: valid/mathd_numbertheory_136.v
+  theorems:
+    - mathd_numbertheory_136
+- file: valid/algebra_2rootspoly_apatapbeq2asqp2ab.v
+  theorems:
+    - algebra_2rootspoly_apatapbeq2asqp2ab
+- file: valid/mathd_numbertheory_232.v
+  theorems:
+    - mathd_numbertheory_232
+- file: valid/imo_1961_p1.v
+  theorems:
+    - imo_1961_p1
+- file: valid/amc12_2000_p5.v
+  theorems:
+    - amc12_2000_p5
+- file: valid/algebra_2rootsintpoly_am10tap11eqasqpam110.v
+  theorems:
+    - algebra_2rootsintpoly_am10tap11eqasqpam110
+- file: valid/mathd_algebra_116.v
+  theorems:
+    - mathd_algebra_116
+- file: valid/mathd_algebra_480.v
+  theorems:
+    - mathd_algebra_480
+- file: valid/induction_sum2kp1npqsqm1.v
+  theorems:
+    - induction_sum2kp1npqsqm1
+- file: valid/mathd_numbertheory_64.v
+  theorems:
+    - mathd_numbertheory_64
+- file: valid/mathd_algebra_190.v
+  theorems:
+    - mathd_algebra_190
+- file: valid/mathd_algebra_51.v
+  theorems:
+    - mathd_algebra_51
+- file: valid/imo_1988_p6.v
+  theorems:
+    - imo_1988_p6
+- file: valid/numbertheory_prmdvsneqnsqmodpeq0.v
+  theorems:
+    - numbertheory_prmdvsneqnsqmodpeq0
+- file: valid/mathd_numbertheory_403.v
+  theorems:
+    - mathd_numbertheory_403
+- file: valid/imo_1990_p3.v
+  theorems:
+    - imo_1990_p3
+- file: valid/mathd_algebra_55.v
+  theorems:
+    - mathd_algebra_55
+- file: valid/mathd_numbertheory_668.v
+  theorems:
+    - mathd_numbertheory_668
+- file: valid/mathd_numbertheory_257.v
+  theorems:
+    - mathd_numbertheory_257
+- file: valid/algebra_amgm_prod1toneq1_sum1tongeqn.v
+  theorems:
+    - algebra_amgm_prod1toneq1_sum1tongeqn
+- file: valid/imo_1977_p5.v
+  theorems:
+    - imo_1977_p5
+- file: valid/mathd_numbertheory_543.v
+  theorems:
+    - mathd_numbertheory_543
+- file: valid/mathd_numbertheory_236.v
+  theorems:
+    - mathd_numbertheory_236
+- file: valid/mathd_numbertheory_466.v
+  theorems:
+    - mathd_numbertheory_466
+- file: valid/mathd_numbertheory_132.v
+  theorems:
+    - mathd_numbertheory_132
+- file: valid/mathd_numbertheory_45.v
+  theorems:
+    - mathd_numbertheory_45
+- file: valid/mathd_numbertheory_709.v
+  theorems:
+    - mathd_numbertheory_709
+- file: valid/amc12b_2003_p6.v
+  theorems:
+    - amc12b_2003_p6
+- file: valid/imo_1973_p3.v
+  theorems:
+    - imo_1973_p3
+- file: valid/mathd_numbertheory_24.v
+  theorems:
+    - mathd_numbertheory_24
+- file: valid/amc12a_2019_p9.v
+  theorems:
+    - amc12a_2019_p9
+- file: valid/mathd_algebra_11.v
+  theorems:
+    - mathd_algebra_11
+- file: valid/mathd_numbertheory_303.v
+  theorems:
+    - mathd_numbertheory_303
+- file: valid/imo_1962_p4.v
+  theorems:
+    - imo_1962_p4
+- file: valid/amc12b_2002_p6.v
+  theorems:
+    - amc12b_2002_p6
+- file: valid/mathd_algebra_616.v
+  theorems:
+    - mathd_algebra_616
+- file: valid/amc12a_2008_p4.v
+  theorems:
+    - amc12a_2008_p4
+- file: valid/algebra_sqineq_2unitcircatblt1.v
+  theorems:
+    - algebra_sqineq_2unitcircatblt1
+- file: valid/mathd_numbertheory_149.v
+  theorems:
+    - mathd_numbertheory_149
+- file: valid/mathd_numbertheory_326.v
+  theorems:
+    - mathd_numbertheory_326
+- file: valid/mathd_algebra_206.v
+  theorems:
+    - mathd_algebra_206
+- file: valid/numbertheory_aneqprodakp4_anmsqrtanp1eq2.v
+  theorems:
+    - numbertheory_aneqprodakp4_anmsqrtanp1eq2
+- file: valid/mathd_algebra_437.v
+  theorems:
+    - mathd_algebra_437
+- file: valid/aime_1983_p9.v
+  theorems:
+    - aime_1983_p9
+- file: valid/mathd_algebra_323.v
+  theorems:
+    - mathd_algebra_323
+- file: valid/numbertheory_sumkmulnckeqnmul2pownm1.v
+  theorems:
+    - numbertheory_sumkmulnckeqnmul2pownm1
+- file: valid/mathd_algebra_267.v
+  theorems:
+    - mathd_algebra_267
+- file: valid/mathd_algebra_89.v
+  theorems:
+    - mathd_algebra_89
+- file: valid/amc12a_2010_p22.v
+  theorems:
+    - amc12a_2010_p22
+- file: valid/mathd_algebra_123.v
+  theorems:
+    - mathd_algebra_123
+- file: valid/mathd_algebra_433.v
+  theorems:
+    - mathd_algebra_433
+- file: valid/amc12a_2015_p10.v
+  theorems:
+    - amc12a_2015_p10
+- file: valid/mathd_algebra_327.v
+  theorems:
+    - mathd_algebra_327
+- file: valid/mathd_numbertheory_30.v
+  theorems:
+    - mathd_numbertheory_30
+- file: valid/algebra_sqineq_4bap1lt4bsqpap1sq.v
+  theorems:
+    - algebra_sqineq_4bap1lt4bsqpap1sq
+- file: valid/mathd_numbertheory_126.v
+  theorems:
+    - mathd_numbertheory_126
+- file: valid/amc12b_2003_p17.v
+  theorems:
+    - amc12b_2003_p17
+- file: valid/mathd_numbertheory_109.v
+  theorems:
+    - mathd_numbertheory_109
+- file: valid/algebra_apb4leq8ta4pb4.v
+  theorems:
+    - algebra_apb4leq8ta4pb4
+- file: valid/aime_1991_p1.v
+  theorems:
+    - aime_1991_p1
+- file: valid/amc12a_2016_p2.v
+  theorems:
+    - amc12a_2016_p2
+- file: valid/amc12a_2021_p7.v
+  theorems:
+    - amc12a_2021_p7
+- file: valid/mathd_numbertheory_780.v
+  theorems:
+    - mathd_numbertheory_780
+- file: valid/amc12b_2003_p9.v
+  theorems:
+    - amc12b_2003_p9
+- file: valid/mathd_numbertheory_629.v
+  theorems:
+    - mathd_numbertheory_629
+- file: valid/mathd_numbertheory_156.v
+  theorems:
+    - mathd_numbertheory_156
+- file: valid/mathd_algebra_159.v
+  theorems:
+    - mathd_algebra_159
+- file: valid/induction_ineq_nsqlefactn.v
+  theorems:
+    - induction_ineq_nsqlefactn
+- file: valid/mathd_algebra_132.v
+  theorems:
+    - mathd_algebra_132
+- file: valid/mathd_algebra_422.v
+  theorems:
+    - mathd_algebra_422
+- file: valid/mathd_numbertheory_252.v
+  theorems:
+    - mathd_numbertheory_252
+- file: valid/algebra_xmysqpymzsqpzmxsqeqxyz_xpypzp6dvdx3y3z3.v
+  theorems:
+    - algebra_xmysqpymzsqpzmxsqeqxyz_xpypzp6dvdx3y3z3
+- file: valid/mathd_algebra_31.v
+  theorems:
+    - mathd_algebra_31
+- file: valid/amc12_2000_p15.v
+  theorems:
+    - amc12_2000_p15
+- file: valid/mathd_algebra_547.v
+  theorems:
+    - mathd_algebra_547
+- file: valid/imo_1979_p1.v
+  theorems:
+    - imo_1979_p1
+- file: valid/mathd_algebra_35.v
+  theorems:
+    - mathd_algebra_35
+- file: valid/amc12_2000_p11.v
+  theorems:
+    - amc12_2000_p11
+- file: valid/mathd_algebra_119.v
+  theorems:
+    - mathd_algebra_119
+- file: valid/amc12a_2020_p21.v
+  theorems:
+    - amc12a_2020_p21
+- file: valid/mathd_algebra_462.v
+  theorems:
+    - mathd_algebra_462
+- file: valid/aime_1984_p5.v
+  theorems:
+    - aime_1984_p5
+- file: valid/imo_1967_p3.v
+  theorems:
+    - imo_1967_p3
+- file: valid/amc12a_2017_p7.v
+  theorems:
+    - amc12a_2017_p7
+- file: valid/mathd_algebra_10.v
+  theorems:
+    - mathd_algebra_10
+- file: valid/amc12a_2008_p15.v
+  theorems:
+    - amc12a_2008_p15
+- file: valid/algebra_manipexpr_apbeq2cceqiacpbceqm2.v
+  theorems:
+    - algebra_manipexpr_apbeq2cceqiacpbceqm2
+- file: valid/mathd_algebra_509.v
+  theorems:
+    - mathd_algebra_509
+- file: valid/amc12a_2009_p5.v
+  theorems:
+    - amc12a_2009_p5
+- file: valid/mathd_algebra_568.v
+  theorems:
+    - mathd_algebra_568
+- file: valid/mathd_algebra_96.v
+  theorems:
+    - mathd_algebra_96
+- file: valid/algebra_manipexpr_2erprsqpesqeqnrpnesq.v
+  theorems:
+    - algebra_manipexpr_2erprsqpesqeqnrpnesq
+- file: valid/imo_1974_p5.v
+  theorems:
+    - imo_1974_p5
+- file: valid/mathd_algebra_109.v
+  theorems:
+    - mathd_algebra_109
+- file: valid/induction_sum_odd.v
+  theorems:
+    - induction_sum_odd
+- file: valid/mathd_algebra_536.v
+  theorems:
+    - mathd_algebra_536
+- file: valid/mathd_algebra_185.v
+  theorems:
+    - mathd_algebra_185
+- file: valid/amc12a_2019_p21.v
+  theorems:
+    - amc12a_2019_p21
+- file: valid/mathd_numbertheory_269.v
+  theorems:
+    - mathd_numbertheory_269
+- file: valid/mathd_numbertheory_202.v
+  theorems:
+    - mathd_numbertheory_202
+- file: valid/mathd_numbertheory_35.v
+  theorems:
+    - mathd_numbertheory_35
+- file: valid/mathd_algebra_126.v
+  theorems:
+    - mathd_algebra_126
+- file: valid/imo_1987_p6.v
+  theorems:
+    - imo_1987_p6
+- file: valid/mathd_numbertheory_284.v
+  theorems:
+    - mathd_numbertheory_284
+- file: valid/mathd_numbertheory_458.v
+  theorems:
+    - mathd_numbertheory_458
+- file: valid/imo_1964_p1_1.v
+  theorems:
+    - imo_1964_p1_1
+- file: valid/induction_sum_1oktkp1.v
+  theorems:
+    - induction_sum_1oktkp1
+- file: valid/amc12b_2002_p11.v
+  theorems:
+    - amc12b_2002_p11
+- file: valid/imo_1978_p5.v
+  theorems:
+    - imo_1978_p5
+- file: valid/algebra_amgm_faxinrrp2msqrt2geq2mxm1div2x.v
+  theorems:
+    - algebra_amgm_faxinrrp2msqrt2geq2mxm1div2x
+- file: valid/mathd_algebra_149.v
+  theorems:
+    - mathd_algebra_149
+- file: valid/mathd_numbertheory_169.v
+  theorems:
+    - mathd_numbertheory_169
+- file: valid/mathd_numbertheory_92.v
+  theorems:
+    - mathd_numbertheory_92
+- file: valid/mathd_numbertheory_102.v
+  theorems:
+    - mathd_numbertheory_102
+- file: valid/mathd_numbertheory_412.v
+  theorems:
+    - mathd_numbertheory_412
+- file: valid/mathd_numbertheory_739.v
+  theorems:
+    - mathd_numbertheory_739
+- file: valid/amc12a_2016_p3.v
+  theorems:
+    - amc12a_2016_p3
+- file: valid/mathd_algebra_181.v
+  theorems:
+    - mathd_algebra_181
+- file: valid/mathd_numbertheory_690.v
+  theorems:
+    - mathd_numbertheory_690
+- file: valid/mathd_algebra_247.v
+  theorems:
+    - mathd_algebra_247
+- file: valid/amc12b_2002_p3.v
+  theorems:
+    - amc12b_2002_p3
+- file: valid/amc12a_2002_p21.v
+  theorems:
+    - amc12a_2002_p21
+- file: valid/mathd_numbertheory_81.v
+  theorems:
+    - mathd_numbertheory_81
+- file: valid/mathd_algebra_192.v
+  theorems:
+    - mathd_algebra_192
+- file: valid/amc12a_2011_p18.v
+  theorems:
+    - amc12a_2011_p18
+- file: valid/mathd_algebra_482.v
+  theorems:
+    - mathd_algebra_482
+- file: valid/amc12a_2003_p1.v
+  theorems:
+    - amc12a_2003_p1
+- file: valid/induction_divisibility_9div10tonm1.v
+  theorems:
+    - induction_divisibility_9div10tonm1
+- file: valid/mathd_algebra_59.v
+  theorems:
+    - mathd_algebra_59
+- file: valid/aime_1984_p15.v
+  theorems:
+    - aime_1984_p15
+- file: valid/mathd_numbertheory_43.v
+  theorems:
+    - mathd_numbertheory_43
+- file: valid/amc12a_2009_p2.v
+  theorems:
+    - amc12a_2009_p2
+- file: valid/numbertheory_sqmod4in01d.v
+  theorems:
+    - numbertheory_sqmod4in01d
+- file: valid/mathd_numbertheory_22.v
+  theorems:
+    - mathd_numbertheory_22
+- file: valid/mathd_algebra_421.v
+  theorems:
+    - mathd_algebra_421
+- file: valid/mathd_algebra_131.v
+  theorems:
+    - mathd_algebra_131
+- file: valid/mathd_numbertheory_155.v
+  theorems:
+    - mathd_numbertheory_155
+- file: valid/amc12a_2009_p15.v
+  theorems:
+    - amc12a_2009_p15
+- file: valid/mathd_numbertheory_211.v
+  theorems:
+    - mathd_numbertheory_211
+- file: valid/mathd_algebra_13.v
+  theorems:
+    - mathd_algebra_13
+- file: valid/mathd_algebra_214.v
+  theorems:
+    - mathd_algebra_214
+- file: valid/aimeII_2001_p3.v
+  theorems:
+    - aimeII_2001_p3
+- file: valid/imo_1965_p1.v
+  theorems:
+    - imo_1965_p1
+- file: valid/mathd_algebra_110.v
+  theorems:
+    - mathd_algebra_110
+- file: valid/amc12a_2010_p11.v
+  theorems:
+    - amc12a_2010_p11
+- file: valid/amc12a_2013_p8.v
+  theorems:
+    - amc12a_2013_p8
+- file: valid/algebra_2varlineareq_xpeeq7_2xpeeq3_eeq11_xeqn4.v
+  theorems:
+    - algebra_2varlineareq_xpeeq7_2xpeeq3_eeq11_xeqn4
+- file: valid/mathd_numbertheory_370.v
+  theorems:
+    - mathd_numbertheory_370
+- file: valid/mathd_numbertheory_405.v
+  theorems:
+    - mathd_numbertheory_405
+- file: valid/amc12_2001_p9.v
+  theorems:
+    - amc12_2001_p9
+- file: valid/algebra_3rootspoly_amdtamctambeqnasqmbpctapcbtdpasqmbpctapcbta.v
+  theorems:
+    - algebra_3rootspoly_amdtamctambeqnasqmbpctapcbtdpasqmbpctapcbta
+- file: valid/algebra_binomnegdiscrineq_10alt28asqp1.v
+  theorems:
+    - algebra_binomnegdiscrineq_10alt28asqp1
+- file: valid/mathd_algebra_282.v
+  theorems:
+    - mathd_algebra_282
+- file: valid/aimeI_2000_p7.v
+  theorems:
+    - aimeI_2000_p7
+- file: valid/mathd_algebra_510.v
+  theorems:
+    - mathd_algebra_510
+- file: valid/mathd_algebra_144.v
+  theorems:
+    - mathd_algebra_144
+- file: valid/mathd_algebra_410.v
+  theorems:
+    - mathd_algebra_410
+- file: valid/mathd_numbertheory_530.v
+  theorems:
+    - mathd_numbertheory_530
+- file: valid/mathd_numbertheory_13.v
+  theorems:
+    - mathd_numbertheory_13
+- file: valid/amc12b_2004_p3.v
+  theorems:
+    - amc12b_2004_p3
+- file: valid/mathd_numbertheory_301.v
+  theorems:
+    - mathd_numbertheory_301
+- file: valid/mathd_numbertheory_101.v
+  theorems:
+    - mathd_numbertheory_101
+- file: valid/amc12a_2008_p8.v
+  theorems:
+    - amc12a_2008_p8
+- file: valid/mathd_algebra_28.v
+  theorems:
+    - mathd_algebra_28
+- file: valid/mathd_algebra_182.v
+  theorems:
+    - mathd_algebra_182
+- file: valid/mathd_algebra_43.v
+  theorems:
+    - mathd_algebra_43
+- file: valid/amc12a_2003_p25.v
+  theorems:
+    - amc12a_2003_p25
+- file: valid/amc12a_2008_p2.v
+  theorems:
+    - amc12a_2008_p2
+- file: valid/numbertheory_2dvd4expn.v
+  theorems:
+    - numbertheory_2dvd4expn
+- file: valid/mathd_algebra_104.v
+  theorems:
+    - mathd_algebra_104
+- file: valid/algebra_sqineq_36azm9asqle36zsq.v
+  theorems:
+    - algebra_sqineq_36azm9asqle36zsq
+- file: valid/mathd_algebra_22.v
+  theorems:
+    - mathd_algebra_22
+- file: valid/imo_1964_p1_2.v
+  theorems:
+    - imo_1964_p1_2
+- file: valid/mathd_algebra_140.v
+  theorems:
+    - mathd_algebra_140
+- file: valid/amc12a_2020_p13.v
+  theorems:
+    - amc12a_2020_p13
+- file: valid/imo_1966_p4.v
+  theorems:
+    - imo_1966_p4
+- file: valid/mathd_numbertheory_961.v
+  theorems:
+    - mathd_numbertheory_961
+- file: valid/amc12a_2002_p1.v
+  theorems:
+    - amc12a_2002_p1
+- file: valid/mathd_numbertheory_32.v
+  theorems:
+    - mathd_numbertheory_32
+- file: valid/amc12b_2020_p5.v
+  theorems:
+    - amc12b_2020_p5
