@@ -106,6 +106,83 @@ def get_context(doc: str, thm: str) -> str:
     return cleaned_text
 
 
+# Dictionnary containing libraries providing automatic solver tactics,
+# how to import them,
+# and the tactics they introduce.
+auto_libraries = {
+    "Init.Ltac": {
+        "import": "",
+        "tactics": ["auto", "eauto"]
+    },
+    "Lra": {
+        "import": "Require Import Lra.",
+        "tactics": ["lra", "nra"]
+    },
+    "Lia": {
+        "import": "Require Import Lia.",
+        "tactics": ["lia", "nia"]
+    },
+    "Lqa": {
+        "import": "Require Import Lqa.",
+        "tactics": ["lra", "nra"]
+    },
+    "Psatz": {
+        "import": "Require Import Psatz.",
+        "tactics": ["psatz"]
+    },
+    "Hammer.Tactics.Tactics": {
+        "import": "From Hammer Require Import Tactics.",
+        "tactics": ["sauto", "hauto"]
+    }
+}
+
+# A dictionnary mapping automatic solver tactics to their possible imports.
+auto_tactics_index = {}
+for lib in auto_libraries.values():
+    for tactic in lib["tactics"]:
+        info = {"lib" : lib, "import": lib["import"]}
+        if tactic in auto_tactics_index:
+            auto_tactics_index[tactic].append(info)
+        else:
+            auto_tactics_index[tactic] = [info]
+
+# Dictionnary containing libraries providing tactics,
+# how to import them,
+# and the tactic they introduce.
+other_libraries = {}
+
+# A dictionnary mapping all tactics in given libraries to their possible imports.
+tactics_index = auto_tactics_index.copy()
+for lib in other_libraries.values():
+    for tactic in lib["tactics"]:
+        info = {"lib" : lib, "import": lib["import"]}
+        if tactic in tactics_index:
+            tactics_index[tactic].append(info)
+        else:
+            tactics_index[tactic] = [info]
+
+def fix_tactic_import(tactic: str) -> list[tuple[str, str]]:
+    """
+    Add the possible imports before a tactic.
+    """
+    if tactic in tactics_index:
+        if len(tactics_index[tactic]) > 1:
+            return tactics_index[tactic].map(lambda info:
+                    (info["import"], info["lib"] + "." + tactic)
+                )
+        else:
+            info = tactics_index[tactic][0]
+            return [(info["import"], tactic)]
+    else:
+        return []
+
+
+@dataclass
+class Status:
+    success: bool
+    state: State
+    proof: list[str]
+
 class Env(ABC):
     """
     Base class for a Petanque environment.
@@ -169,6 +246,31 @@ class Env(ABC):
     def info_for_comparison(self) -> str:
         pass
 
+    def try_automatic_solving(self, state) -> Status:
+        """
+        Try resulving the given state with the Rocq automatic solver tactics.
+        """
+        for tactic in auto_tactics_index.keys():
+            for imp, tactic in fix_tactic_import(tactic):
+                try:
+                    new_state = self.pet.run_tac(state, imp, timeout=10)
+                    new_state = self.pet.run_tac(new_state, tactic, timeout=10)
+                    if self.verbose:
+                        print("success:", tactic)
+                    return Status(success=True, state=new_state, proof=[imp, tactic])
+                except PetanqueError as err:
+                    if self.verbose:
+                        print(tactic, "->", err.message)
+        return Status(state, success=False, proof=[])
+
+
+    def automatic_solving(self) -> tuple[bool, str]:
+        """
+        Try resolving the proof with the Rocq automatic solver tactics.
+        """
+        status = self.try_automatic_solving(self.state)
+        return status.success, " ".join(status.proof)
+
 
 class TacticEnv(Env):
     """
@@ -221,6 +323,39 @@ class TacticEnv(Env):
         except PetanqueError:
             return False
 
+    def exec_tactic(self, state, tac, imp=None) -> bool:
+        """
+        Execute one tactic with a potential import tactic before.
+        """
+        try:
+            if imp:
+                state = self.pet.run_tac(self.state, imp, timeout=10)
+            else:
+                state = self.state
+            self.state = self.pet.run_tac(state, tac, timeout=10)
+            self.previous_unsuccessful = []
+            if imp:
+                self.proof.append(imp)
+            self.proof.append(tac)
+            if self.verbose:
+                print("success")
+            return True
+        except PetanqueError as err:
+            if m := re.match(
+                r"Coq: The reference (?P<tactic>\S*) was not found in the current environment",
+                err.message
+            ):
+                fixed_tactics = fix_tactic_import(tac)
+                if fixed_tactics:
+                    for imp, tac in fixed_tactics:
+                        if self.exec_tactic(tac, imp):
+                            return True
+                    return False
+            if self.verbose:
+                print("error", err.message)
+            self.previous_unsuccessful.append(str(tac) + str(err.message))
+            return False
+
     def exec(self, response: Response):
         """
         Parse and execute the LLM message.
@@ -231,17 +366,7 @@ class TacticEnv(Env):
         for tac in tactics:
             if self.verbose:
                 print("tactic:", tac)
-            try:
-                self.state = self.pet.run_tac(self.state, tac, timeout=10)
-                self.previous_unsuccessful = []
-                self.proof.append(tac)
-                if self.verbose:
-                    print("success")
-            except PetanqueError as err:
-                # Add error message to the prompt
-                if self.verbose:
-                    print("error:", err.message)
-                self.previous_unsuccessful.append(str(tac) + str(err.message))
+            if not self.exec_tactic(tac):
                 break
 
     @property
@@ -422,6 +547,20 @@ class TemplateEnv(Env):
                     err.message,
                 ):  # Drop bullet
                     return fix(state, tactics[1:], opened_par, True)
+                if m := re.match(
+                    r"Coq: The reference (?P<tactic>\S*) was not found in the current environment",
+                    err.message
+                ):  # try importing the correct library for the tactic
+                    for imp, tac in fix_tactic_import(tac):
+                        try:
+                            new_state = self.pet.run_tac(state, imp, timeout=10)
+                            new_state = self.pet.run_tac(new_state, tac, timeout=10)
+                            template.proof.append(imp)
+                            template.proof.append(tac)
+                            fix(new_state, tactics[1:], opened_par, drop)
+                        except PetanqueError as err:
+                            pass
+                    return fix(state, ["admit."] + tactics[1:], opened_par, True)
                 else:  # replace tac by admit and drop until next valid tactic.
                     return fix(state, ["admit."] + tactics[1:], opened_par, True)
 

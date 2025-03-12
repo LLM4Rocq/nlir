@@ -16,6 +16,14 @@ class Status:
     success: bool
     proof: str
 
+def automatic_name(call):
+    return f"Naive-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
+
+@weave.op(call_display_name=automatic_name)
+def automatic_search(_agent: LLM, env: Env, _max_steps: int) -> Status:
+    success, proof = env.automatic_solving()
+    return Status(0, success, proof)
+
 
 def naive_name(call):
     return f"Naive-{call.attributes['kind']}-{call.attributes['thm']}-{call.attributes['file']}"
