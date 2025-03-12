@@ -8,6 +8,7 @@ from .prompts import comparison_prompts, tactic_prompts, template_prompts
 from functools import partial
 from ast import literal_eval
 import weave
+import heapq
 
 
 @dataclass
@@ -206,5 +207,36 @@ def beam_search(
     return Status(max_steps, False, proof)
 
 
-def best_first_search(agent: LLM, env: Env, max_steps: int, n_reponses: int) -> Status:
-    pass
+def best_first_search(
+    agent: LLM, env: Env, max_steps: int, n_reponses: int, max_tokens: int
+) -> Status:
+    queue = [(0.0, env)]
+    for step in range(max_steps):
+        if len(queue) == 0:
+            break
+        total_score, current_env = heapq.heappop(queue)
+
+        step_cands, step_scores = agent.generate(
+            num_sampples=n_reponses,
+            max_tokens=max_tokens,
+            prompt=current_env.prompt,
+            stop="---",
+        )
+        step_cands = [s.strip() for s in step_cands]
+
+        for step_cand, score in zip(step_cands, step_scores):
+            env_copy = current_env.deepcopy()
+            env_copy.exec([step_cand])
+            proof = " ".join(env_copy.proof)
+            print(proof)
+            if env_copy.proof_finished:
+                if env_copy.check_proof():
+                    agent.log(UserMessage(role="user", content=f"Final Proof: {proof}"))
+                    return Status(step, True, proof)
+            else:
+                # Score is negative log probability summed across steps
+                new_score = total_score - score
+                heapq.heappush(queue, (new_score, env_copy))
+
+    agent.log(UserMessage(role="user", content=f"Failed Proof: {proof}"))
+    return Status(step, False, proof)

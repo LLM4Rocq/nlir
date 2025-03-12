@@ -6,8 +6,8 @@ import numpy as np
 from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
 from nlir.agent import Ghost, LiteLLM
-from nlir.petanque import TacticEnv, TemplateEnv
-from nlir.search import naive_search, beam_search, Status
+from nlir.petanque import TacticEnv, TemplateEnv, Lemma_TacticEnv
+from nlir.search import naive_search, beam_search, Status, best_first_search
 from pathlib import Path
 from datetime import datetime
 from omegaconf import DictConfig
@@ -53,6 +53,8 @@ def main(cfg: DictConfig):
             env_cls = TacticEnv
         case "template":
             env_cls = TemplateEnv
+        case "llemma":
+            env_cls = Lemma_TacticEnv
         case _:
             raise RuntimeError(
                 "search.kind config should be one of [tactics, template]"
@@ -66,6 +68,12 @@ def main(cfg: DictConfig):
                 beam_search,
                 beam_size=cfg.search.beam_size,
                 n_reponses=cfg.search.n_responses,
+            )
+        case "best_first":
+            search = partial(
+                best_first_search,
+                n_reponses=cfg.search.n_responses,
+                max_tokens=cfg.search.max_tokens,
             )
         case _:
             raise RuntimeError("search.mode config should be one of [naive, beam]")

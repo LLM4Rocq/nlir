@@ -178,6 +178,7 @@ class Lemma_TacticEnv(Env):
         self.state: State = self.initial_state
 
     def exec(self, tactics):
+        self.n_interactions += 1
         for tac in tactics:
             if self.verbose:
                 print("tactic:", tac)
@@ -192,8 +193,17 @@ class Lemma_TacticEnv(Env):
                 break
 
     @property
-    def prompt(self, tactic):
-        return lemma.prompt.format(tactic=tactic)
+    def prompt(self):
+        return lemma.prompt.format(goal=pp_goals(self.pet.goals(self.state)))
+
+    @property
+    def proof_finished(self) -> bool:
+        # Hack to bypass Petanque proof_finished flag
+        try:
+            self.pet.run_tac(self.state, "Qed.")
+            return True
+        except PetanqueError:
+            return False
 
 
 class TacticEnv(Env):
