@@ -138,9 +138,9 @@ auto_libraries = {
 
 # A dictionnary mapping automatic solver tactics to their possible imports.
 auto_tactics_index = {}
-for lib in auto_libraries.values():
-    for tactic in lib["tactics"]:
-        info = {"lib" : lib, "import": lib["import"]}
+for lib, content in auto_libraries.items():
+    for tactic in content["tactics"]:
+        info = {"lib" : lib, "import": content["import"]}
         if tactic in auto_tactics_index:
             auto_tactics_index[tactic].append(info)
         else:
@@ -167,20 +167,21 @@ def fix_tactic_import(tactic: str) -> list[tuple[str, str]]:
     """
     if tactic in tactics_index:
         if len(tactics_index[tactic]) > 1:
-            return tactics_index[tactic].map(lambda info:
-                    (info["import"], info["lib"] + "." + tactic)
+            return map(
+                    lambda info: (info["import"], info["lib"] + "." + tactic + "."),
+                    tactics_index[tactic]
                 )
         else:
             info = tactics_index[tactic][0]
-            return [(info["import"], tactic)]
+            return [(info["import"], tactic + ".")]
     else:
         return []
 
 
 @dataclass
 class Status:
-    success: bool
     state: State
+    success: bool
     proof: list[str]
 
 class Env(ABC):
@@ -189,7 +190,7 @@ class Env(ABC):
     `exec` and `output` need to be defined for `search`
     """
 
-    def __init__(self, pet, workspace, file, thm, context, verbose=False):
+    def __init__(self, pet, workspace, file, thm, context, verbose=True):
         self.pet = pet
         self.workspace = workspace
         self.file = file
@@ -197,6 +198,7 @@ class Env(ABC):
         self.thm = thm
         self.proof: list[str] = []
         self.initial_state: State = self.pet.start(self.path, thm)
+        self.state = self.initial_state
         self.thm_code = pp_goals(self.pet.goals(self.initial_state))
         self.n_interactions = 0
         self.verbose = verbose
@@ -257,10 +259,10 @@ class Env(ABC):
                     new_state = self.pet.run_tac(new_state, tactic, timeout=10)
                     if self.verbose:
                         print("success:", tactic)
-                    return Status(success=True, state=new_state, proof=[imp, tactic])
+                    return Status(state=new_state, success=True, proof=[imp, tactic])
                 except PetanqueError as err:
                     if self.verbose:
-                        print(tactic, "->", err.message)
+                        print("error:", tactic, err.message)
         return Status(state, success=False, proof=[])
 
 
@@ -281,7 +283,6 @@ class TacticEnv(Env):
         self, pet: Pytanque, workspace: str, file: str, thm: str, context: bool
     ):
         super().__init__(pet, workspace, file, thm, context)
-        self.state: State = self.initial_state
         self.previous_unsuccessful = []
 
     def parse(self, response: Response) -> list[str]:
@@ -323,7 +324,7 @@ class TacticEnv(Env):
         except PetanqueError:
             return False
 
-    def exec_tactic(self, state, tac, imp=None) -> bool:
+    def exec_tactic(self, tac, imp=None) -> bool:
         """
         Execute one tactic with a potential import tactic before.
         """
@@ -345,7 +346,7 @@ class TacticEnv(Env):
                 r"Coq: The reference (?P<tactic>\S*) was not found in the current environment",
                 err.message
             ):
-                fixed_tactics = fix_tactic_import(tac)
+                fixed_tactics = fix_tactic_import(m.group("tactic"))
                 if fixed_tactics:
                     for imp, tac in fixed_tactics:
                         if self.exec_tactic(tac, imp):
@@ -353,7 +354,7 @@ class TacticEnv(Env):
                     return False
             if self.verbose:
                 print("error", err.message)
-            self.previous_unsuccessful.append(str(tac) + str(err.message))
+            self.previous_unsuccessful.append(str(tac) + " " + str(err.message))
             return False
 
     def exec(self, response: Response):
@@ -551,13 +552,13 @@ class TemplateEnv(Env):
                     r"Coq: The reference (?P<tactic>\S*) was not found in the current environment",
                     err.message
                 ):  # try importing the correct library for the tactic
-                    for imp, tac in fix_tactic_import(tac):
+                    for imp, tac in fix_tactic_import(m.group("tactic")):
                         try:
-                            new_state = self.pet.run_tac(state, imp, timeout=10)
-                            new_state = self.pet.run_tac(new_state, tac, timeout=10)
+                            next_state = self.pet.run_tac(state, imp, timeout=10)
+                            next_state = self.pet.run_tac(next_state, tac, timeout=10)
                             template.proof.append(imp)
                             template.proof.append(tac)
-                            fix(new_state, tactics[1:], opened_par, drop)
+                            return fix(next_state, tactics[1:], opened_par, False)
                         except PetanqueError as err:
                             pass
                     return fix(state, ["admit."] + tactics[1:], opened_par, True)
