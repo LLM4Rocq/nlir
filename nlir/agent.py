@@ -1,5 +1,8 @@
 import os
 import json
+import random
+import string
+import re
 from abc import ABC, abstractmethod
 from typing import Iterable
 from pathlib import Path
@@ -82,30 +85,108 @@ class LiteLLM(LLM):
         self.log(resp)
         return resp
 
-    @weave.op()
-    def multi_responses(self, messages: list[Message], n=1) -> list[Response]:
+    def multi_responses_seed(self, messages: list[Message], n=1) -> list[Response]:
+        """
+        The diversity of the responses is obtained by adding different seeds when asking to the LLM.
+        """
         list(map(self.log, messages))
-        try:
+        seeds = [random.randint(0, 9999) for _ in range(n)]
+
+        def seeded_response(seed):
+            raw = completion(
+                model=self.model_id,
+                messages=messages,
+                seed=seed,
+                temperature=self.temperature,
+            )
+            resp = Response(role="assistant", content=raw.choices[0].message.content)
+            self.log(resp)
+            return resp
+
+        return list(map(seeded_response, seeds))
+
+    def multi_responses_prefix(self, messages: list[Message], n=1, k=100) -> list[Response]:
+        """
+        The diversity of the responses is obtained by adding random characters at the beginning of the prompt.
+        """
+        list(map(self.log, messages))
+        prefixes = [''.join(random.choices(string.ascii_uppercase + string.digits, k=k)) for _ in range(n)]
+
+        def prefixed_response(prefix):
+            last_message = messages[-1].copy()
+            last_message["content"] = prefix + "\n" + last_message["content"] # essayer de mettre la prefix à la fin
             raw = completion(
                 model=self.model_id,
                 messages=messages,
                 temperature=self.temperature,
-                n=n,
             )
-            resp = [
-                # Hack: surprising type for raw.choices...
-                Response(role="assistant", content=m.message.content)  # pyright: ignore
-                for m in raw.choices  # type: ignore
-            ]
-        except (UnsupportedParamsError, BadRequestError):
-            with ContextAwareThreadPoolExecutor(max_workers=20) as executor:
-                these_futures = [
-                    executor.submit(self.response, messages) for _ in range(n)
-                ]
-                concurrent.futures.wait(these_futures)
-                resp = [future.result() for future in these_futures]
-        list(map(self.log, resp))
-        return resp
+            resp = Response(role="assistant", content=raw.choices[0].message.content)
+            self.log(resp)
+            return resp
+
+        return list(map(prefixed_response, prefixes))
+
+    def multi_responses_personality(self, messages: list[Message], n=1) -> list[Response]:
+        """
+        The diversity of the responses is obtained by giving a last instruction on how the LLM should behave.
+        """
+
+        prompt = "One last instruction, while you try to give the best answer possible you should be very {personality}."
+
+        personalities = [
+            "calm",
+            "cautious",
+            "exhaustive",
+            "thorough",
+            "succint",
+            "careful",
+            "conscientious",
+            "couragous",
+            "bold",
+            "positive",
+            "negative",
+            "excited",
+            "efficient",
+            "scientifically accurate",
+            "precise",
+            "pernickety",
+            "finical",
+            "picky",
+            "niggling",
+            "detailed",
+            "pathetic",
+            "sensitive",
+        ]
+        personalities = random.sample(personalities, n)
+
+        def personality_response(personality):
+            print(personality)
+            last_message = { "role" : "user", "content" : prompt.format(personality=personality) }
+            raw = completion(
+                model=self.model_id,
+                messages=messages+[last_message],
+                temperature=self.temperature,
+            )
+            resp = Response(role="assistant", content=raw.choices[0].message.content)
+            self.log(resp)
+            return resp
+
+        return list(map(personality_response, personalities))
+
+    @weave.op()
+    def multi_responses(self, messages: list[Message], n=1, mode=1) -> list[Response]:
+        """
+        Given a list of messages returns n possible responses.
+        """
+        match mode:
+            case 0:
+                return self.multi_responses_seed(messages, n)
+            case 1:
+                return self.multi_responses_prefix(messages, n)
+            case 2:
+                return self.multi_responses_personality(messages, n)
+            case _:
+                raise Exception("Wrong multi_responses mode.")
 
 
 class Ghost(LLM):
@@ -128,7 +209,7 @@ class Ghost(LLM):
         yield from self.messages
 
     @weave.op()
-    def response(self, messages: list[Message]) -> Response:
+    def response(self, messages: list[Message], seed: int = 1234) -> Response:
         list(map(self.log, messages))
         resp = next(self.messages)
         self.log(resp)
