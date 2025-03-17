@@ -7,7 +7,7 @@ from hydra.core.hydra_config import HydraConfig
 from pytanque import Pytanque, PetanqueError
 from nlir.agent import Ghost, LiteLLM
 from nlir.petanque import TacticEnv, TemplateEnv
-from nlir.search import naive_search, beam_search, Status
+from nlir.search import automatic_search, naive_search, beam_search, Status
 from pathlib import Path
 from datetime import datetime
 from omegaconf import DictConfig
@@ -59,6 +59,8 @@ def main(cfg: DictConfig):
             )
 
     match cfg.search.mode:
+        case "automatic":
+            search = partial(automatic_search)
         case "naive":
             search = partial(naive_search)
         case "beam":
