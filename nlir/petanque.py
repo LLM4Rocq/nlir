@@ -133,6 +133,14 @@ auto_libraries = {
     "Hammer.Tactics.Tactics": {
         "import": "From Hammer Require Import Tactics.",
         "tactics": ["sauto", "hauto"]
+    },
+    "setoid_ring.Ring": {
+        "import": "Require Import setoid_ring.Ring.",
+        "tactics": ["ring"]
+    },
+    "setoid_ring.Field": {
+        "import": "Require Import setoid_ring.Field.",
+        "tactics": ["field"]
     }
 }
 
@@ -257,6 +265,7 @@ class Env(ABC):
                 try:
                     new_state = self.pet.run_tac(state, imp, timeout=10)
                     new_state = self.pet.run_tac(new_state, tactic, timeout=10)
+                    self.pet.run_tac(new_state, "Qed.")
                     if self.verbose:
                         print("success:", tactic)
                     return Status(state=new_state, success=True, proof=[imp, tactic])
